@@ -127,7 +127,7 @@ const page = () => {
 
           <div className="mt-6 flex justify-center gap-3 text-gray-700 dark:text-gray-300">
             <FaRegUser className="h-5 w-5" />
-            <span className="font-semibold text-gray-700 dark:text-gray-300">
+            <span className="font-semibold text-gray-700 dark:text-gray-300"> 
               Students Trained: {formData.noOfStudents?.toLocaleString() ?? "-"}
             </span>
           </div>

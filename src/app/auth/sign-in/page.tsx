@@ -11,7 +11,7 @@ export default function SignIn() {
   const [checkingAuth, setCheckingAuth] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("adminToken");
     if (token) {
       router.push("/");
     } else {

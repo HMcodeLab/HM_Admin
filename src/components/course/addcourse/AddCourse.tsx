@@ -44,7 +44,7 @@
 
 // const AddCourse: React.FC = () => {
 //   const token =
-//     typeof window !== "undefined" ? localStorage.getItem("authToken") : null;
+//     typeof window !== "undefined" ? localStorage.getItem("adminToken") : null;
 
 //   const [uploadedMedia, setUploadedMedia] = useState<any[]>([]);
 //   const [allInstructor, setAllInstructor] = useState<any[]>([]);

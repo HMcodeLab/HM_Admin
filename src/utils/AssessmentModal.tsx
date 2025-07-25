@@ -59,7 +59,7 @@ const AssessmentModal: React.FC<AssessmentModalProps> = ({
   };
 
   const adminToken =
-    typeof window !== "undefined" ? localStorage.getItem("authToken") : "";
+    typeof window !== "undefined" ? localStorage.getItem("adminToken") : "";
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
