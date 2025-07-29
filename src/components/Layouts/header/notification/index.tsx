@@ -87,33 +87,7 @@ export function Notification() {
         </div>
 
         <ul className="mb-3 max-h-[23rem] space-y-1.5 overflow-y-auto">
-          {notificationList.map((item, index) => (
-            <li key={index} role="menuitem">
-              <Link
-                href="#"
-                onClick={() => setIsOpen(false)}
-                className="flex items-center gap-4 rounded-lg px-2 py-1.5 outline-none hover:bg-gray-2 focus-visible:bg-gray-2 dark:hover:bg-dark-3 dark:focus-visible:bg-dark-3"
-              >
-                <Image
-                  src={item.image}
-                  className="size-14 rounded-full object-cover"
-                  width={200}
-                  height={200}
-                  alt="User"
-                />
-
-                <div>
-                  <strong className="block text-sm font-medium text-dark dark:text-white">
-                    {item.title}
-                  </strong>
-
-                  <span className="truncate text-sm font-medium text-dark-5 dark:text-dark-6">
-                    {item.subTitle}
-                  </span>
-                </div>
-              </Link>
-            </li>
-          ))}
+       
         </ul>
 
         <Link

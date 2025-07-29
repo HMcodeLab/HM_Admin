@@ -15,6 +15,25 @@ const getAuthHeaders = (adminToken: string) => ({
   },
 });
 
+// export const verifyadminuser = async (adminToken: string) => {
+//   try {
+//     const headers = getAuthHeaders(adminToken);
+//     console.log("🔐 Auth Headers:", headers);
+
+//     const response = await axios.get(
+//       `${API_URL}/verifyadminuser/dashboard`, 
+//       headers,
+//     );
+
+//     console.log("✅ User verified:", response);
+//     return response?.data || [];
+//   } catch (error: any) {
+//     console.error("❌ Error fetching verifyadminuser:", error.message || error);
+//     toast.error("Failed to fetch verifyadminuser");
+//     return [];
+//   }
+// };
+
 // 🔹 Fetch Enquiries
 export const fetchEnquiries = async (adminToken: string) => {
   try {

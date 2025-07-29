@@ -74,6 +74,8 @@ export default function Page() {
           },
         );
 
+        // console.log("Checking response data for admin role", res)
+
         const json = await res.json();
 
         if (res.ok && json.success && json.data) {

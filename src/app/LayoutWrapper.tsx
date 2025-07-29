@@ -11,6 +11,7 @@ import "@/css/satoshi.css";
 import "@/css/style.css";
 import "flatpickr/dist/flatpickr.min.css";
 import "jsvectormap/dist/jsvectormap.css";
+import { jwtDecode } from "jwt-decode";
 
 export default function LayoutWrapper({
   children,
@@ -21,6 +22,8 @@ export default function LayoutWrapper({
   const router = useRouter();
 
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
+
   const noLayoutRoutes = ["/auth/sign-in", "/auth/sign-up"];
   const isAuthPage = noLayoutRoutes.includes(pathname);
 
@@ -28,11 +31,20 @@ export default function LayoutWrapper({
     const token = localStorage.getItem("adminToken");
 
     if (token) {
-      setIsLoggedIn(true);
+      try {
+        const decoded: any = jwtDecode(token);
+        const role = decoded?.role || decoded?.userRole || null;
+        setUserRole(role);
+        setIsLoggedIn(true);
+        localStorage.setItem("userRole", role ?? "");
+      } catch (error) {
+        console.error("Token decoding failed:", error);
+        setIsLoggedIn(false);
+      }
     } else if (!isAuthPage) {
       setIsLoggedIn(false);
     } else {
-      setIsLoggedIn(true); // allow auth pages
+      setIsLoggedIn(true);
     }
   }, [pathname]);
 
@@ -47,12 +59,9 @@ export default function LayoutWrapper({
     return (
       <div className="flex min-h-screen items-center justify-center bg-white dark:bg-black">
         <div className="flex items-center space-x-3">
-          {/* Spinner */}
           <div className="h-12 w-12 animate-spin rounded-full border-4 border-gray-300 border-t-blue-500"></div>
-
-          {/* Loading Text */}
           <p className="text-lg text-gray-500 dark:text-gray-300">
-           Welcome Back...
+            Welcome Back...
           </p>
         </div>
       </div>
@@ -66,12 +75,10 @@ export default function LayoutWrapper({
         <main className="min-h-screen">{children}</main>
       ) : (
         <div className="flex h-screen overflow-hidden">
-          {/* Sidebar - Fixed Width, No Scroll Effect */}
           <div className="w-74 flex-shrink-0 bg-white dark:bg-[#0c1a2b]">
-            <Sidebar userRole="superAdmin" />
+            {/* Pass empty string if userRole is null */}
+            <Sidebar userRole={userRole ?? ""} />
           </div>
-
-          {/* Right Side - Scrollable Content */}
           <div className="flex flex-1 flex-col overflow-hidden bg-gray-2 dark:bg-[#020d1a]">
             <Header />
             <main className="isolate mx-auto w-full max-w-screen-2xl flex-1 overflow-y-auto p-4 md:p-6 2xl:p-10">

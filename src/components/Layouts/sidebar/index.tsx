@@ -33,14 +33,14 @@ export function Sidebar({ userRole }: SidebarProps) {
       .map((section) => ({
         ...section,
         items: section.items
-          .filter((item) => item.roles.includes(role))
+          .filter((item) => item.roles?.includes(role))
           .map((item) => ({
             ...item,
             items: item.items
               ? item.items.filter((subItem) =>
                   subItem.roles
                     ? subItem.roles.includes(role)
-                    : item.roles.includes(role),
+                    : item.roles?.includes(role),
                 )
               : [],
           })),
@@ -58,16 +58,18 @@ export function Sidebar({ userRole }: SidebarProps) {
 
   // Auto-expand if current path is in subitem
   useEffect(() => {
+    const newExpandedItems: string[] = [];
+
     filteredNav.forEach((section) => {
       section.items.forEach((item) => {
         if (item.items?.some((subItem) => subItem.url === pathname)) {
-          if (!expandedItems.includes(item.title)) {
-            setExpandedItems((prev) => [...prev, item.title]);
-          }
+          newExpandedItems.push(item.title);
         }
       });
     });
-  }, [pathname]);
+
+    setExpandedItems((prev) => [...new Set([...prev, ...newExpandedItems])]);
+  }, [pathname, filteredNav]);
 
   return (
     <>
@@ -117,7 +119,6 @@ export function Sidebar({ userRole }: SidebarProps) {
                 <h2 className="mb-5 text-sm font-medium text-dark-4 dark:text-dark-6">
                   {section.label}
                 </h2>
-
                 <nav role="navigation" aria-label={section.label}>
                   <ul className="space-y-2">
                     {section?.items.map((item) => (
@@ -188,10 +189,10 @@ export function Sidebar({ userRole }: SidebarProps) {
                                   item.title.toLowerCase().replace(/\s+/g, "-"))
                             }
                           >
-                            <div className="flex items-center">
+                            <div className="flex items-center gap-2">
                               {item.icon && (
                                 <item.icon
-                                  className="size-6 shrink-0"
+                                  className="size-4 shrink-0"
                                   aria-hidden="true"
                                 />
                               )}
