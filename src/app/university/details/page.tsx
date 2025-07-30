@@ -37,7 +37,7 @@ interface University {
   users?: Student[];
 }
 
-const page: React.FC = () => {
+const Page: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [university, setUniversity] = useState<University>({});
   const [filteredOpen, setFilteredOpen] = useState<boolean | null>(null);
@@ -382,4 +382,4 @@ const searchedUsers = filteredUsers?.filter((student) => {
   );
 };
 
-export default page;
+export default Page;

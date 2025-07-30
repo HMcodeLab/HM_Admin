@@ -8,6 +8,7 @@ import axios from "axios";
 import toast, { Toaster } from "react-hot-toast";
 import { FaCamera } from "react-icons/fa";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import Image from "next/image";
 
 interface SocialLink {
   websiteName: string;
@@ -195,10 +196,15 @@ const AddTrainer: React.FC = () => {
             {/* Profile Image or Default Icon */}
             <div className="relative h-24 w-24">
               {formData.profile ? (
-                <img
-                  src={formData.profile}
-                  alt="Profile"
-                  className="h-24 w-24 rounded-full border object-cover shadow"
+                <Image
+                  src={formData.profile || "/images/default-avatar.avif"}
+                  onError={(e) =>
+                    (e.currentTarget.src = "/images/default-avatar.avif")
+                  }
+                  alt="Instructor"
+                  className="h-64 w-full object-cover transition-all duration-300 group-hover:scale-105"
+                  width={300}
+                  height={300}
                 />
               ) : (
                 <div className="flex h-24 w-24 items-center justify-center rounded-full border bg-gray-200 shadow">

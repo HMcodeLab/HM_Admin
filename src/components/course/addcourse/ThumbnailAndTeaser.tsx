@@ -7,6 +7,7 @@ import { ImCross } from "react-icons/im";
 import { CourseType } from "@/types";
 import ImageCoursesModal from "@/utils/ImageCoursesModal";
 import FeatureVideoCourseModal from "@/utils/FeatureVideoCourseModal";
+import Image from "next/image";
 
 interface ThumbnailAndTeaserProps {
   courseDetails: CourseType;
@@ -70,10 +71,12 @@ const ThumbnailAndTeaser: React.FC<ThumbnailAndTeaserProps> = ({
             Thumbnail
           </p>
           {courseDetails.featured_image && (
-            <img
+            <Image
               src={courseDetails.featured_image}
               alt="Thumbnail"
               className="h-40 w-full rounded-lg object-cover"
+              width={200}
+              height={200}
             />
           )}
           <div className="flex w-full items-center gap-2">
@@ -111,10 +114,12 @@ const ThumbnailAndTeaser: React.FC<ThumbnailAndTeaserProps> = ({
             Banner
           </p>
           {courseDetails.bannerImg && (
-            <img
+            <Image
               src={courseDetails.bannerImg}
               alt="Banner"
               className="h-40 w-full rounded-lg object-cover"
+              width={200}
+              height={200}
             />
           )}
           <div className="flex w-full items-center gap-2">

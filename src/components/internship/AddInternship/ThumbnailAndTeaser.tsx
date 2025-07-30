@@ -6,6 +6,7 @@ import { ImCross } from "react-icons/im";
 import ImageCoursesModal from "@/utils/ImageCoursesModal";
 import FeatureVideoCourseModal from "@/utils/FeatureVideoCourseModal";
 import Loader from "@/components/Loader";
+import Image from "next/image"; // ✅ Import Next.js Image
 import { ThumbnailAndTeaserProps } from "@/types";
 
 const ThumbnailAndTeaser: React.FC<ThumbnailAndTeaserProps> = ({
@@ -123,11 +124,16 @@ const ThumbnailAndTeaser: React.FC<ThumbnailAndTeaserProps> = ({
                     <source src={value} type="video/mp4" />
                   </video>
                 ) : (
-                  <img
-                    src={value}
-                    alt={label}
-                    className="h-40 w-full rounded-md object-cover"
-                  />
+                  <div className="relative h-40 w-full">
+                    <Image
+                      src={value}
+                      alt={label}
+                      fill
+                      sizes="100vw"
+                      className="rounded-md object-cover"
+                      priority
+                    />
+                  </div>
                 ))}
 
               <div className="flex w-full items-center gap-2">

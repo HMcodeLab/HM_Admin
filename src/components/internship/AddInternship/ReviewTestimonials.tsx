@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { PlusCircle, UploadCloud, Trash2 } from "lucide-react";
 import { InternshipData } from "@/types";
 import ImageCoursesModal from "@/utils/ImageCoursesModal";
@@ -29,24 +29,34 @@ const ReviewTestimonials: React.FC<ReviewTestimonialsProps> = ({
     null,
   );
 
-  const openModal = () => setIsModalVideoOpen(true);
-  const closeModal = () => setIsModalVideoOpen(false);
-  const openImageModal = () => setIsModalImageOpen(true);
-  const closeImageModal = () => setIsModalImageOpen(false);
+  const openModal = useCallback(() => setIsModalVideoOpen(true), []);
+  const closeModal = useCallback(() => setIsModalVideoOpen(false), []);
+  const openImageModal = useCallback(() => setIsModalImageOpen(true), []);
+  const closeImageModal = useCallback(() => setIsModalImageOpen(false), []);
 
-  const handleReviewVideosChange = (url: string) => {
-    if (currentTestimonialIndex === null) return;
-    const updated = { ...courseDetails };
-    updated.testimonials[currentTestimonialIndex].reviewVideo = url;
-    setCourseDetails(updated);
-  };
+  const handleReviewVideosChange = useCallback(
+    (url: string) => {
+      if (currentTestimonialIndex === null) return;
+      setCourseDetails((prev) => {
+        const updated = { ...prev };
+        updated.testimonials[currentTestimonialIndex].reviewVideo = url;
+        return updated;
+      });
+    },
+    [currentTestimonialIndex, setCourseDetails],
+  );
 
-  const handleUserImageChange = (url: string) => {
-    if (currentReviewsIndex === null) return;
-    const updated = { ...courseDetails };
-    updated.reviews[currentReviewsIndex].userProfileImg = url;
-    setCourseDetails(updated);
-  };
+  const handleUserImageChange = useCallback(
+    (url: string) => {
+      if (currentReviewsIndex === null) return;
+      setCourseDetails((prev) => {
+        const updated = { ...prev };
+        updated.reviews[currentReviewsIndex].userProfileImg = url;
+        return updated;
+      });
+    },
+    [currentReviewsIndex, setCourseDetails],
+  );
 
   useEffect(() => {
     if (selectedMediaFromModal) {
@@ -60,57 +70,84 @@ const ReviewTestimonials: React.FC<ReviewTestimonialsProps> = ({
       closeImageModal();
       closeModal();
     }
-  }, [selectedMediaFromModal]);
+  }, [
+    selectedMediaFromModal,
+    selectedMediaType,
+    handleReviewVideosChange,
+    handleUserImageChange,
+    closeImageModal,
+    closeModal,
+  ]);
 
-  const addReviews = () => {
-    setCourseDetails({
-      ...courseDetails,
+  const addReviews = useCallback(() => {
+    setCourseDetails((prev) => ({
+      ...prev,
       reviews: [
-        ...courseDetails.reviews,
+        ...prev.reviews,
         { review: "", reating: 1, userName: "", userProfileImg: "" },
       ],
-    });
-  };
+    }));
+  }, [setCourseDetails]);
 
-  const removeReviews = (index: number) => {
-    const updated = courseDetails.reviews.filter((_, i) => i !== index);
-    setCourseDetails({ ...courseDetails, reviews: updated });
-  };
+  const removeReviews = useCallback(
+    (index: number) => {
+      setCourseDetails((prev) => ({
+        ...prev,
+        reviews: prev.reviews.filter((_, i) => i !== index),
+      }));
+    },
+    [setCourseDetails],
+  );
 
-  const handleReviewsChange = (
-    index: number,
-    field: string,
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => {
-    const updated = [...courseDetails.reviews];
-    updated[index][field] = e.target.value;
-    setCourseDetails({ ...courseDetails, reviews: updated });
-  };
+  const handleReviewsChange = useCallback(
+    (
+      index: number,
+      field: string,
+      e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    ) => {
+      setCourseDetails((prev) => {
+        const updated = [...prev.reviews];
+        updated[index][field] = e.target.value;
+        return { ...prev, reviews: updated };
+      });
+    },
+    [setCourseDetails],
+  );
 
-  const addTestimonials = () => {
-    setCourseDetails({
-      ...courseDetails,
+  const addTestimonials = useCallback(() => {
+    setCourseDetails((prev) => ({
+      ...prev,
       testimonials: [
-        ...courseDetails.testimonials,
+        ...prev.testimonials,
         { review: "", rating: 1, userName: "", reviewVideo: "" },
       ],
-    });
-  };
+    }));
+  }, [setCourseDetails]);
 
-  const removeTestimonials = (index: number) => {
-    const updated = courseDetails.testimonials.filter((_, i) => i !== index);
-    setCourseDetails({ ...courseDetails, testimonials: updated });
-  };
+  const removeTestimonials = useCallback(
+    (index: number) => {
+      setCourseDetails((prev) => ({
+        ...prev,
+        testimonials: prev.testimonials.filter((_, i) => i !== index),
+      }));
+    },
+    [setCourseDetails],
+  );
 
-  const handleTestimonialsChange = (
-    index: number,
-    field: string,
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => {
-    const updated = [...courseDetails.testimonials];
-    updated[index][field] = e.target.value;
-    setCourseDetails({ ...courseDetails, testimonials: updated });
-  };
+  const handleTestimonialsChange = useCallback(
+    (
+      index: number,
+      field: string,
+      e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    ) => {
+      setCourseDetails((prev) => {
+        const updated = [...prev.testimonials];
+        updated[index][field] = e.target.value;
+        return { ...prev, testimonials: updated };
+      });
+    },
+    [setCourseDetails],
+  );
 
   return (
     <div className="mt-8 px-4 dark:text-white">
@@ -283,7 +320,6 @@ const ReviewTestimonials: React.FC<ReviewTestimonialsProps> = ({
         </div>
       </div>
 
-      {/* Input style */}
       <style jsx>{`
         .input-style {
           width: 100%;

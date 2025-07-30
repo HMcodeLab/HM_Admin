@@ -30,7 +30,7 @@ const InstructorDetail: React.FC<Props> = ({
       ...courseDetails,
       instructor: selectedinstructorFromModal,
     });
-  }, [selectedinstructorFromModal]);
+  }, [selectedinstructorFromModal, courseDetails, setCourseDetails]);
 
   const openModal = () => setIsModalOpen(true);
 
@@ -42,7 +42,7 @@ const InstructorDetail: React.FC<Props> = ({
           setIsModalOpen={setIsModalOpen}
           InstructorDetails={InstructorDetails}
           setselectedinstructorFromModal={setselectedinstructorFromModal}
-          //   type={selectedModal}
+          // type={selectedModal}
         />
       )}
 

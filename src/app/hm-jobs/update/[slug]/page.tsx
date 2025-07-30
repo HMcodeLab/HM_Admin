@@ -1,7 +1,7 @@
 "use client";
 
 import axios from "axios";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
 import { FaPlus, FaTrash } from "react-icons/fa6";
@@ -29,7 +29,7 @@ interface Job {
   key_skills: string[];
 }
 
-const page: React.FC = () => {
+const Page: React.FC = () => {
   const { slug } = useParams();
   const router = useRouter();
 
@@ -39,63 +39,121 @@ const page: React.FC = () => {
       ? localStorage.getItem("adminToken") || ""
       : "";
 
-  const [job, setJob] = useState<Job>({
-    position: "",
-    employment_type: "",
-    educational_qualification: "",
-    company: "",
-    role_category: "",
-    work_mode: "",
-    work_experience: { isFresher: true, from: "", to: "" },
-    annual_salary_range: { from: "", to: "" },
-    company_industry: "",
-    interview_mode: "",
-    job_url: "",
-    about_company: "",
-    job_description: "",
-    company_website_link: "",
-    company_address: "",
-    logoUrl: "",
-    publishStatus: "",
-    publishDate: "",
-    lastDate: "",
-    key_skills: [],
-  });
+  const emptyJob = useMemo<Job>(
+    () => ({
+      position: "",
+      employment_type: "",
+      educational_qualification: "",
+      company: "",
+      role_category: "",
+      work_mode: "",
+      work_experience: { isFresher: true, from: "", to: "" },
+      annual_salary_range: { from: "", to: "" },
+      company_industry: "",
+      interview_mode: "",
+      job_url: "",
+      about_company: "",
+      job_description: "",
+      company_website_link: "",
+      company_address: "",
+      logoUrl: "",
+      publishStatus: "",
+      publishDate: "",
+      lastDate: "",
+      key_skills: [],
+    }),
+    [],
+  ); 
+
+  const [job, setJob] = useState<Job>(emptyJob);
+
+  // const emptyJob: Job = {
+  //   position: "",
+  //   employment_type: "",
+  //   educational_qualification: "",
+  //   company: "",
+  //   role_category: "",
+  //   work_mode: "",
+  //   work_experience: { isFresher: true, from: "", to: "" },
+  //   annual_salary_range: { from: "", to: "" },
+  //   company_industry: "",
+  //   interview_mode: "",
+  //   job_url: "",
+  //   about_company: "",
+  //   job_description: "",
+  //   company_website_link: "",
+  //   company_address: "",
+  //   logoUrl: "",
+  //   publishStatus: "",
+  //   publishDate: "",
+  //   lastDate: "",
+  //   key_skills: [],
+  // };
+
+
 
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
   const [newSkill, setNewSkill] = useState<string>("");
 
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/getInHousePlacement?jobid=${slug}`,
-        {
-          headers: {
-            Authorization: `Bearer ${adminToken}`,
-          },
-        },
-      );
+  // const fetchData = async () => {
+  //   setLoading(true);
+  //   try {
+  //     const response = await axios.get(
+  //       `${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/getInHousePlacement?jobid=${slug}`,
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${adminToken}`,
+  //         },
+  //       },
+  //     );
 
-      if (response?.data?.InHousePlacement) {
-        setJob(response.data.InHousePlacement);
-      } else {
-        setJob(null);
-      }
-    } catch (error) {
-      console.error(error);
-      toast.error("Failed to fetch job details.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  //     if (response?.data?.InHousePlacement) {
+  //       setJob(response.data.InHousePlacement);
+  //     } else {
+  //       setJob(null);
+  //     }
+  //   } catch (error) {
+  //     console.error(error);
+  //     toast.error("Failed to fetch job details.");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
-  useEffect(() => {
-    if (adminToken && slug) {
-      fetchData();
-    }
-  }, [adminToken, slug]);
+   useEffect(() => {
+     if (!adminToken || !slug) return;
+
+     const fetchData = async () => {
+       setLoading(true);
+       try {
+         const response = await axios.get(
+           `${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/getInHousePlacement?jobid=${slug}`,
+           {
+             headers: { Authorization: `Bearer ${adminToken}` },
+           },
+         );
+         if (response?.data?.InHousePlacement) {
+           setJob(response.data.InHousePlacement);
+         } else {
+           setJob(emptyJob); // reset to emptyJob safely
+         }
+       } catch (error) {
+         console.error(error);
+         toast.error("Failed to fetch job details.");
+       } finally {
+         setLoading(false);
+       }
+     };
+
+     fetchData();
+   }, [adminToken, slug, emptyJob]);
+
+  // useEffect(() => {
+  //   if (adminToken && slug) {
+  //     fetchData();
+  //   }
+  // }, [adminToken, slug]);
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -532,4 +590,4 @@ const page: React.FC = () => {
   );
 };
 
-export default page;
+export default Page;

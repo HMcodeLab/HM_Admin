@@ -28,7 +28,7 @@ interface InstructorData {
   profile?: string;
 }
 
-const page = () => {
+const Page = () => {
   const [formData, setFormData] = useState<InstructorData>({});
 
   useEffect(() => {
@@ -158,4 +158,4 @@ const page = () => {
   );
 };
 
-export default page;
+export default Page;

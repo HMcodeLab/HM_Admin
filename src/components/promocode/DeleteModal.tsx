@@ -2,45 +2,37 @@
 
 import React from "react";
 
-interface DeleteModalProps {
-  toggleDeleteModal: () => void;
-  deleteAction: (id: any) => void;
-  id: any;
+export interface DeleteModalProps {
+  deleteHandler: () => void | Promise<void>;
+  handleToggleOpen: () => void;
 }
 
 export const DeleteModal: React.FC<DeleteModalProps> = ({
-  toggleDeleteModal,
-  deleteAction,
-  id,
+  deleteHandler,
+  handleToggleOpen,
 }) => {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-      {/* Background overlay */}
-      <div
-        className="fixed inset-0 bg-black bg-opacity-60"
-        onClick={toggleDeleteModal}
-        role="button"
-        tabIndex={0}
-        aria-label="Close modal"
-      ></div>
-
-      {/* Modal content */}
-      <div className="relative z-10 w-full max-w-sm rounded-lg bg-white p-6 text-gray-800 shadow-lg dark:bg-gray-900 dark:text-white">
-        <p className="text-center text-lg font-medium">
-          Are you sure you want to delete this record?
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+      <div className="w-full max-w-sm rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800">
+        <h2 className="mb-4 text-lg font-bold text-red-600 dark:text-red-400">
+          Confirm Deletion
+        </h2>
+        <p className="mb-6 text-gray-700 dark:text-gray-300">
+          Are you sure you want to delete this promocode? This action cannot be
+          undone.
         </p>
-        <div className="mt-6 flex justify-around gap-4">
+        <div className="flex justify-end gap-4">
           <button
-            className="rounded-md bg-red-600 px-4 py-2 text-white transition hover:bg-red-700"
-            onClick={() => deleteAction(id)}
+            onClick={handleToggleOpen}
+            className="rounded-lg border border-gray-400 px-4 py-2 text-gray-700 hover:bg-gray-200 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
           >
-            Yes
+            Cancel
           </button>
           <button
-            className="rounded-md bg-gray-500 px-4 py-2 text-white transition hover:bg-gray-600"
-            onClick={toggleDeleteModal}
+            onClick={deleteHandler}
+            className="rounded-lg bg-red-600 px-4 py-2 text-white hover:bg-red-700"
           >
-            No
+            Delete
           </button>
         </div>
       </div>

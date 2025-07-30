@@ -236,9 +236,10 @@
 // };
 
 // export default AddCourse;
+
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import toast, { Toaster } from "react-hot-toast";
 
@@ -336,10 +337,35 @@ const AddCourse: React.FC = () => {
 
   const [courseDetails, setCourseDetails] = useState<CourseType>(initialData);
 
+  // useEffect(() => {
+  //   fetchData();
+  //   fetchDataInstructor();
+  // }, []);
+
+  const fetchDataInstructor = useCallback(async () => {
+    try {
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/instructors`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      if (response.data.success) {
+        setAllInstructor(response.data.data);
+      } else {
+        toast.error("Error fetching instructor");
+      }
+    } catch (error: any) {
+      toast.error("Error fetching instructor: " + error.message);
+    }
+  }, [token]); // token as dependency, so it changes only if token changes
+
   useEffect(() => {
     fetchData();
     fetchDataInstructor();
-  }, []);
+  }, [fetchDataInstructor]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -359,25 +385,25 @@ const AddCourse: React.FC = () => {
     }
   };
 
-  const fetchDataInstructor = async () => {
-    try {
-      const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/instructors`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-      if (response.data.success) {
-        setAllInstructor(response.data.data);
-      } else {
-        toast.error("Error fetching instructor");
-      }
-    } catch (error: any) {
-      toast.error("Error fetching instructor: " + error.message);
-    }
-  };
+  // const fetchDataInstructor = async () => {
+  //   try {
+  //     const response = await axios.get(
+  //       `${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/instructors`,
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${token}`,
+  //         },
+  //       },
+  //     );
+  //     if (response.data.success) {
+  //       setAllInstructor(response.data.data);
+  //     } else {
+  //       toast.error("Error fetching instructor");
+  //     }
+  //   } catch (error: any) {
+  //     toast.error("Error fetching instructor: " + error.message);
+  //   }
+  // };
 
   const isCoursedChanged = () => {
     return JSON.stringify(courseDetails) !== JSON.stringify(initialData);

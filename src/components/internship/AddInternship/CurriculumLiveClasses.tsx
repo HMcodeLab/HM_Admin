@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   FaPlus,
   FaTrash,
@@ -140,65 +140,81 @@ const CurriculumLiveClasses: React.FC<CurriculumLiveClassesProps> = ({
   };
 
   // Handle media selection from modal
-  const handleVideoChange = (
-    chapterIndex: number | null,
-    lessonIndex: number | null,
-    url: string,
-  ) => {
-    if (chapterIndex === null || lessonIndex === null) return;
+  const handleVideoChange = useCallback(
+    (chapterIndex: number | null, lessonIndex: number | null, url: string) => {
+      if (chapterIndex === null || lessonIndex === null) return;
 
-    const updatedCurriculum = [...courseDetails.curriculum];
-    updatedCurriculum.forEach((module, modIndex) => {
-      if (module.chapters[chapterIndex]) {
-        module.chapters[chapterIndex].lessons[lessonIndex].video = url;
-      }
-    });
+      const updatedCurriculum = [...courseDetails.curriculum];
+      updatedCurriculum.forEach((module, modIndex) => {
+        if (module.chapters[chapterIndex]) {
+          module.chapters[chapterIndex].lessons[lessonIndex].video = url;
+        }
+      });
 
-    setCourseDetails({
-      ...courseDetails,
-      curriculum: updatedCurriculum,
-    });
-  };
+      setCourseDetails({
+        ...courseDetails,
+        curriculum: updatedCurriculum,
+      });
+    },
+    [courseDetails, setCourseDetails],
+  );
+  const handleNotesChange = useCallback(
+    (chapterIndex: number | null, lessonIndex: number | null, url: string) => {
+      if (chapterIndex === null || lessonIndex === null) return;
 
-  const handleNotesChange = (
-    chapterIndex: number | null,
-    lessonIndex: number | null,
-    url: string,
-  ) => {
-    if (chapterIndex === null || lessonIndex === null) return;
+      const updatedCurriculum = [...courseDetails.curriculum];
+      updatedCurriculum.forEach((module, modIndex) => {
+        if (module.chapters[chapterIndex]) {
+          module.chapters[chapterIndex].lessons[lessonIndex].notes = url;
+        }
+      });
 
-    const updatedCurriculum = [...courseDetails.curriculum];
-    updatedCurriculum.forEach((module, modIndex) => {
-      if (module.chapters[chapterIndex]) {
-        module.chapters[chapterIndex].lessons[lessonIndex].notes = url;
-      }
-    });
+      setCourseDetails({
+        ...courseDetails,
+        curriculum: updatedCurriculum,
+      });
+    },
+    [courseDetails, setCourseDetails],
+  );
 
-    setCourseDetails({
-      ...courseDetails,
-      curriculum: updatedCurriculum,
-    });
-  };
+  const handleAssignmentChange = useCallback(
+    (chapterIndex: number | null, lessonIndex: number | null, url: string) => {
+      if (chapterIndex === null || lessonIndex === null) return;
 
-  const handleAssignmentChange = (
-    chapterIndex: number | null,
-    lessonIndex: number | null,
-    url: string,
-  ) => {
-    if (chapterIndex === null || lessonIndex === null) return;
+      const updatedCurriculum = [...courseDetails.curriculum];
+      updatedCurriculum.forEach((module, modIndex) => {
+        if (module.chapters[chapterIndex]) {
+          module.chapters[chapterIndex].lessons[lessonIndex].assignment = url;
+        }
+      });
 
-    const updatedCurriculum = [...courseDetails.curriculum];
-    updatedCurriculum.forEach((module, modIndex) => {
-      if (module.chapters[chapterIndex]) {
-        module.chapters[chapterIndex].lessons[lessonIndex].assignment = url;
-      }
-    });
+      setCourseDetails({
+        ...courseDetails,
+        curriculum: updatedCurriculum,
+      });
+    },
+    [courseDetails, setCourseDetails],
+  );
 
-    setCourseDetails({
-      ...courseDetails,
-      curriculum: updatedCurriculum,
-    });
-  };
+  // const handleAssignmentChange = (
+  //   chapterIndex: number | null,
+  //   lessonIndex: number | null,
+  //   url: string,
+  // ) => {
+  //   if (chapterIndex === null || lessonIndex === null) return;
+
+  //   const updatedCurriculum = [...courseDetails.curriculum];
+  //   updatedCurriculum.forEach((module, modIndex) => {
+  //     if (module.chapters[chapterIndex]) {
+  //       module.chapters[chapterIndex].lessons[lessonIndex].assignment = url;
+  //     }
+  //   });
+
+  //   setCourseDetails({
+  //     ...courseDetails,
+  //     curriculum: updatedCurriculum,
+  //   });
+  // };
 
   useEffect(() => {
     if (
@@ -230,7 +246,15 @@ const CurriculumLiveClasses: React.FC<CurriculumLiveClassesProps> = ({
     // Clear selected media and type after handling
     setSelectedMediaFromModal("");
     setSelectedMediaType("");
-  }, [selectedMediaFromModal]);
+  }, [
+    selectedMediaFromModal,
+    selectedMediaType,
+    currentChapterIndex,
+    currentLessonIndex,
+    handleVideoChange,
+    handleNotesChange,
+    handleAssignmentChange,
+  ]);
 
   // Add new module
   const addModule = () => {

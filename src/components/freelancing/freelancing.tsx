@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import toast, { Toaster } from "react-hot-toast";
 import * as XLSX from "xlsx";
-
+import Image from "next/image";
 
 interface FreelancePost {
   _id: string;
@@ -19,9 +19,7 @@ interface FreelancePost {
   salary?: number;
   experience?: number;
   description?: string;
-  
 }
-
 
 const PAGE_SIZE_OPTIONS = [10, 20, 30, 50, 100];
 
@@ -38,46 +36,42 @@ const Freelancing = () => {
       ? localStorage.getItem("adminToken") || ""
       : "";
 
-  async function fetchData() {
-    try {
-      const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/getAllFreelanceOpenings`,
-        {
-          headers: {
-            Authorization: `Bearer ${adminToken}`,
-          },
-        },
-      );
-      if (response?.data?.freelanceOpenings) {
-        setFreelancePosts(response.data.freelanceOpenings);
-      }
-    } catch (error: any) {
-      console.error("Error fetching freelance posts:", error);
-      toast.error(
-        `Error fetching freelance posts: ${error?.message || "Unknown error"}`,
-      );
-    } finally {
-      setLoading(false);
-    }
-  }
-
   useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get(
+          `${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/getAllFreelanceOpenings`,
+          {
+            headers: { Authorization: `Bearer ${adminToken}` },
+          },
+        );
+        if (response?.data?.freelanceOpenings) {
+          setFreelancePosts(response.data.freelanceOpenings);
+        }
+      } catch (error: any) {
+        toast.error(
+          `Error fetching freelance posts: ${error?.message || "Unknown error"}`,
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchData();
-  }, []);
+  }, [adminToken]);
 
   // Filter posts by search term (case insensitive)
-const filteredPosts = useMemo(() => {
-  if (!searchTerm.trim()) return freelancePosts;
-  const lowerSearch = searchTerm.toLowerCase();
+  const filteredPosts = useMemo(() => {
+    if (!searchTerm.trim()) return freelancePosts;
+    const lowerSearch = searchTerm.toLowerCase();
 
-  return freelancePosts.filter((post) => {
-    const titleMatch = post.title.toLowerCase().includes(lowerSearch);
-    const descMatch =
-      post.description?.toLowerCase().includes(lowerSearch) ?? false;
-    return titleMatch || descMatch;
-  });
-}, [searchTerm, freelancePosts]);
-
+    return freelancePosts.filter((post) => {
+      const titleMatch = post.title.toLowerCase().includes(lowerSearch);
+      const descMatch =
+        post.description?.toLowerCase().includes(lowerSearch) ?? false;
+      return titleMatch || descMatch;
+    });
+  }, [searchTerm, freelancePosts]);
 
   // Pagination: calculate posts for current page
   const totalPages = Math.ceil(filteredPosts.length / pageSize);
@@ -205,10 +199,12 @@ const filteredPosts = useMemo(() => {
                   >
                     {/* Logo */}
                     <td className="border-b border-gray-200 p-3 dark:border-gray-700">
-                      <img
-                        src={post.logoUrl}
+                      <Image
+                        src={post.logoUrl || "/default-logo.png"}
                         alt="logo"
-                        className="h-10 w-10 object-contain"
+                        width={40}
+                        height={40}
+                        className="object-contain"
                       />
                     </td>
 

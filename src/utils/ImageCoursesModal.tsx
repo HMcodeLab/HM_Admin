@@ -4,6 +4,7 @@ import { useEffect, useState, ChangeEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Loader from "@/components/Loader";
 import { ImageCoursesModalProps, MediaItem } from "@/types";
+import Image from "next/image";
 
 const ImageCoursesModal = <T extends object>({
   isModalImageOpen,
@@ -212,10 +213,12 @@ const ImageCoursesModal = <T extends object>({
                       onClick={() => handleChangeMedia(media.url)}
                       className="flex flex-col items-center rounded-md transition hover:scale-105"
                     >
-                      <img
+                      <Image
                         src={media.url}
                         alt={extractFilename(media.title)}
                         className="mb-2 h-36 w-full max-w-[180px] rounded-md bg-gray-50 object-contain dark:bg-gray-800"
+                        width={300}
+                        height={300}
                       />
                       <span className="w-full truncate text-center text-sm text-gray-700 dark:text-gray-300">
                         {extractFilename(media.title)}

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { FaPlus, FaTrash, FaEdit } from "react-icons/fa";
 import { RiUploadCloud2Line } from "react-icons/ri";
 import { useTheme } from "next-themes";
@@ -76,107 +76,233 @@ const CurriculumLiveClasses: React.FC<CurriculumLiveClassesProps> = ({
     setIsModalVideoOpen(true);
   };
 
-  const closeModal = () => {
-    setIsModalVideoOpen(false);
-  };
+ const closeModal = useCallback(() => {
+   setIsModalVideoOpen(false);
+ }, []);
 
+  const closePdfModal = useCallback(() => {
+    setIsModalPdfOpen(false);
+  }, []);
   const openPdfModal = (type: string) => {
     setSelectedModal(type);
     setIsModalPdfOpen(true);
   };
 
-  const closePdfModal = () => {
-    setIsModalPdfOpen(false);
-  };
+
+
 
   // Input change handler
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-    options: {
-      chapterIndex: number;
-      lessonIndex?: number;
-      projectIndex?: number;
-      field: string;
-    },
-  ) => {
-    const { value } = e.target;
-    const { chapterIndex, lessonIndex, projectIndex, field } = options;
+  // const handleInputChange = useCallback(
+  //   (
+  //     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  //     options: {
+  //       chapterIndex: number;
+  //       lessonIndex?: number;
+  //       projectIndex?: number;
+  //       field: string;
+  //     },
+  //   ) => {
+  //     const { value } = e.target;
+  //     const { chapterIndex, lessonIndex, projectIndex, field } = options;
 
-    setCourseDetails((prev) => {
-      const updatedCurriculum = [...prev.curriculum];
+  //     setCourseDetails((prev) => {
+  //       const updatedCurriculum = [...prev.curriculum];
 
-      if (lessonIndex !== undefined) {
+  //       if (lessonIndex !== undefined) {
+  //         // Handle lesson fields
+  //         const lesson = updatedCurriculum[chapterIndex].lessons[lessonIndex];
+  //         if (!lesson) return prev;
+
+  //         switch (field) {
+  //           case "lesson_name":
+  //             lesson.lesson_name = value;
+  //             break;
+  //           case "lesson_video":
+  //             lesson.video = value;
+  //             break;
+  //           case "lesson_duration":
+  //             lesson.duration = value;
+  //             break;
+  //           case "lesson_notesName":
+  //             lesson.notesName = value;
+  //             break;
+  //           case "lesson_notesUrl":
+  //             lesson.notes = value;
+  //             break;
+  //           case "lesson_assignmentName":
+  //             lesson.assignmentName = value;
+  //             break;
+  //           case "lesson_assignmentUrl":
+  //             lesson.assignment = value;
+  //             break;
+  //           case "lesson_transcript":
+  //             lesson.transcript = value;
+  //             break;
+  //           case "lesson_liveClass_meetingLink":
+  //             lesson.liveClass.meetingLink = value;
+  //             break;
+  //           case "lesson_liveClass_startDate":
+  //             lesson.liveClass.startDate = value;
+  //             break;
+  //           case "lesson_liveClass_endDate":
+  //             lesson.liveClass.endDate = value;
+  //             break;
+  //         }
+  //       } else if (projectIndex !== undefined) {
+  //         // Handle project fields
+  //         const project = updatedCurriculum[chapterIndex].project[projectIndex];
+  //         if (!project) return prev;
+
+  //         switch (field) {
+  //           case "project_title":
+  //             project.title = value;
+  //             break;
+  //           case "project_startDate":
+  //             project.startDate = value;
+  //             break;
+  //           case "project_duration":
+  //             project.duration = Number(value);
+  //             break;
+  //           case "project_endDate":
+  //             project.endDate = value;
+  //             break;
+  //           case "project_infoPdf":
+  //             project.projectInfoPdf = value;
+  //             break;
+  //         }
+  //       } else {
+  //         // Handle chapter fields
+  //         updatedCurriculum[chapterIndex].chapter_name = value;
+  //       }
+
+  //       return { ...prev, curriculum: updatedCurriculum };
+  //     });
+  //   },
+  //   [setCourseDetails], // Only setCourseDetails is a dependency
+  // );
+
+
+  const handleInputChange = useCallback(
+    (
+      e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+      options: {
+        chapterIndex: number;
+        lessonIndex?: number;
+        projectIndex?: number;
+        field: string;
+      },
+    ) => {
+      const { value } = e.target;
+      const { chapterIndex, lessonIndex, projectIndex, field } = options;
+
+      setCourseDetails((prev) => {
+        if (!prev.curriculum[chapterIndex]) return prev;
+
+        const updatedCurriculum = [...prev.curriculum];
+        const updatedChapter = { ...updatedCurriculum[chapterIndex] };
+
         // Handle lesson fields
-        const lesson = updatedCurriculum[chapterIndex].lessons[lessonIndex];
-        if (!lesson) return prev;
+        if (typeof lessonIndex === "number") {
+          if (!updatedChapter.lessons[lessonIndex]) return prev;
 
-        switch (field) {
-          case "lesson_name":
-            lesson.lesson_name = value;
-            break;
-          case "lesson_video":
-            lesson.video = value;
-            break;
-          case "lesson_duration":
-            lesson.duration = value;
-            break;
-          case "lesson_notesName":
-            lesson.notesName = value;
-            break;
-          case "lesson_notesUrl":
-            lesson.notes = value;
-            break;
-          case "lesson_assignmentName":
-            lesson.assignmentName = value;
-            break;
-          case "lesson_assignmentUrl":
-            lesson.assignment = value;
-            break;
-          case "lesson_transcript":
-            lesson.transcript = value;
-            break;
-          case "lesson_liveClass_meetingLink":
-            lesson.liveClass.meetingLink = value;
-            break;
-          case "lesson_liveClass_startDate":
-            lesson.liveClass.startDate = value;
-            break;
-          case "lesson_liveClass_endDate":
-            lesson.liveClass.endDate = value;
-            break;
+          const updatedLessons = [...updatedChapter.lessons];
+          const updatedLesson = { ...updatedLessons[lessonIndex] };
+
+          switch (field) {
+            case "lesson_name":
+              updatedLesson.lesson_name = value;
+              break;
+            case "lesson_video":
+              updatedLesson.video = value;
+              break;
+            case "lesson_duration":
+              updatedLesson.duration = value;
+              break;
+            case "lesson_notesName":
+              updatedLesson.notesName = value;
+              break;
+            case "lesson_notesUrl":
+              updatedLesson.notes = value;
+              break;
+            case "lesson_assignmentName":
+              updatedLesson.assignmentName = value;
+              break;
+            case "lesson_assignmentUrl":
+              updatedLesson.assignment = value;
+              break;
+            case "lesson_transcript":
+              updatedLesson.transcript = value;
+              break;
+            case "lesson_liveClass_meetingLink":
+              updatedLesson.liveClass = {
+                ...updatedLesson.liveClass,
+                meetingLink: value,
+              };
+              break;
+            case "lesson_liveClass_startDate":
+              updatedLesson.liveClass = {
+                ...updatedLesson.liveClass,
+                startDate: value,
+              };
+              break;
+            case "lesson_liveClass_endDate":
+              updatedLesson.liveClass = {
+                ...updatedLesson.liveClass,
+                endDate: value,
+              };
+              break;
+            default:
+              return prev;
+          }
+
+          updatedLessons[lessonIndex] = updatedLesson;
+          updatedChapter.lessons = updatedLessons;
         }
-      } else if (projectIndex !== undefined) {
         // Handle project fields
-        const project = updatedCurriculum[chapterIndex].project[projectIndex];
-        if (!project) return prev;
+        else if (typeof projectIndex === "number") {
+          if (!updatedChapter.project[projectIndex]) return prev;
 
-        switch (field) {
-          case "project_title":
-            project.title = value;
-            break;
-          case "project_startDate":
-            project.startDate = value;
-            break;
-          case "project_duration":
-            project.duration = Number(value);
-            break;
-          case "project_endDate":
-            project.endDate = value;
-            break;
-          case "project_infoPdf":
-            project.projectInfoPdf = value;
-            break;
+          const updatedProjects = [...updatedChapter.project];
+          const updatedProject = { ...updatedProjects[projectIndex] };
+
+          switch (field) {
+            case "project_title":
+              updatedProject.title = value;
+              break;
+            case "project_startDate":
+              updatedProject.startDate = value;
+              break;
+            case "project_duration":
+              updatedProject.duration = Number(value);
+              break;
+            case "project_endDate":
+              updatedProject.endDate = value;
+              break;
+            case "project_infoPdf":
+              updatedProject.projectInfoPdf = value;
+              break;
+            default:
+              return prev;
+          }
+
+          updatedProjects[projectIndex] = updatedProject;
+          updatedChapter.project = updatedProjects;
         }
-      } else {
         // Handle chapter fields
-        updatedCurriculum[chapterIndex].chapter_name = value;
-      }
+        else {
+          updatedChapter.chapter_name = value;
+        }
 
-      return { ...prev, curriculum: updatedCurriculum };
-    });
-  };
+        updatedCurriculum[chapterIndex] = updatedChapter;
+        return { ...prev, curriculum: updatedCurriculum };
+      });
+    },
+    [setCourseDetails],
+  );
 
-  // Handle media selection from modal
+
+
+  // First useEffect - Handles media selection from modal
   useEffect(() => {
     if (
       !selectedMediaFromModal ||
@@ -224,8 +350,82 @@ const CurriculumLiveClasses: React.FC<CurriculumLiveClassesProps> = ({
     setSelectedMediaFromModal("");
     closeModal();
     closePdfModal();
-  }, [selectedMediaFromModal]);
+  }, [
+    selectedMediaFromModal,
+    selectedMediaType,
+    currentChapterIndex,
+    currentLessonIndex,
+    currentProjectIndex,
+    handleInputChange,
+    closeModal,
+    closePdfModal,
+  ]);
 
+  // Second useEffect - Backup/alternative media handling with different conditions
+  useEffect(() => {
+    if (
+      !selectedMediaFromModal ||
+      !selectedMediaType ||
+      currentChapterIndex === null ||
+      (currentLessonIndex === null && currentProjectIndex === null)
+    )
+      return;
+
+    // Different approach for handling media - could be used for special cases
+    const handleSpecialMediaCase = () => {
+      const fieldMap: Record<string, string> = {
+        video: "lesson_video",
+        notes: "lesson_notesUrl",
+        assignment: "lesson_assignmentUrl",
+        project_infoPdf: "project_infoPdf",
+      };
+
+      const field = fieldMap[selectedMediaType];
+      if (!field) return;
+
+      setCourseDetails((prev) => {
+        const updatedCurriculum = [...prev.curriculum];
+
+        if (currentLessonIndex !== null) {
+          const lesson =
+            updatedCurriculum[currentChapterIndex].lessons[currentLessonIndex];
+          if (field === "lesson_video") lesson.video = selectedMediaFromModal;
+          else if (field === "lesson_notesUrl")
+            lesson.notes = selectedMediaFromModal;
+          else if (field === "lesson_assignmentUrl")
+            lesson.assignment = selectedMediaFromModal;
+        } else if (currentProjectIndex !== null) {
+          const project =
+            updatedCurriculum[currentChapterIndex].project[currentProjectIndex];
+          if (field === "project_infoPdf")
+            project.projectInfoPdf = selectedMediaFromModal;
+        }
+
+        return { ...prev, curriculum: updatedCurriculum };
+      });
+
+      setSelectedMediaFromModal("");
+      closeModal();
+      closePdfModal();
+    };
+
+    // Only run this alternative handler for specific conditions
+    if (
+      selectedMediaType === "video" ||
+      selectedMediaType === "project_infoPdf"
+    ) {
+      handleSpecialMediaCase();
+    }
+  }, [
+    selectedMediaFromModal,
+    selectedMediaType,
+    currentChapterIndex,
+    currentLessonIndex,
+    currentProjectIndex,
+    setCourseDetails,
+    closeModal,
+    closePdfModal,
+  ]);
   // Chapter management
   const addChapter = (insertAfterIndex: number) => {
     setCourseDetails((prev) => {
@@ -357,7 +557,7 @@ const CurriculumLiveClasses: React.FC<CurriculumLiveClassesProps> = ({
   const deleteButtonClass = `flex items-center gap-2 px-4 py-2 rounded-lg transition-colors bg-red-500 hover:bg-red-600 text-white`;
 
   return (
-    <div className="space-y-6 h-screen overflow-y-auto p-6">
+    <div className="h-screen space-y-6 overflow-y-auto p-6">
       {/* Modals */}
       {isModalVideoOpen && (
         <VideoCourseModal

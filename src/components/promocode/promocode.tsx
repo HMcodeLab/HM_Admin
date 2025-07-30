@@ -1,11 +1,10 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import AddPromoCode from "./AddPromoCode";
 import UpdatePromoCode from "./UpdatePromoCode";
 import { DeleteModal } from "./DeleteModal";
 import axios from "axios";
-
 import { FaEdit, FaTrash } from "react-icons/fa";
 import toast, { Toaster } from "react-hot-toast";
 import Loader from "@/components/Loader";
@@ -56,7 +55,7 @@ const Promocode: React.FC = () => {
     setModalUpdateOpen(false);
   };
 
-  const fetchPromocode = async () => {
+  const fetchPromocode = useCallback(async () => {
     setLoading(true);
     try {
       const res = await axios.get(`${SERVER_DOMAIN}/getallpromocodeadmin`, {
@@ -70,23 +69,21 @@ const Promocode: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [adminToken]); // ✅ Removed SERVER_DOMAIN
 
   useEffect(() => {
     fetchPromocode();
-  }, []);
+  }, [fetchPromocode]);
 
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
     if (isNaN(date.getTime())) return "";
-
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    const hours = String(date.getHours()).padStart(2, "0");
-    const minutes = String(date.getMinutes()).padStart(2, "0");
-
-    return `${year}-${month}-${day} , ${hours}:${minutes}`;
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
+      2,
+      "0",
+    )}-${String(date.getDate()).padStart(2, "0")} , ${String(
+      date.getHours(),
+    ).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
   };
 
   const submitCreatePromoCode = async (promoData: PromoCode) => {
@@ -105,46 +102,33 @@ const Promocode: React.FC = () => {
     }
   };
 
-const submitUpdatePromoCode = async (promoData: PromoCode) => {
-  if (!adminToken) {
-    toast.error("No admin token found. Please login again.");
-    return;
-  }
-
-  console.log("Updating Promocode with data:", promoData);
-
-  try {
-    const response = await axios.put(
-      `${SERVER_DOMAIN}/updatepromocode`,
-      promoData,
-      {
+  const submitUpdatePromoCode = async (promoData: PromoCode) => {
+    if (!adminToken) {
+      toast.error("No admin token found. Please login again.");
+      return;
+    }
+    try {
+      await axios.put(`${SERVER_DOMAIN}/updatepromocode`, promoData, {
         headers: {
           Authorization: `Bearer ${adminToken}`,
           "Content-Type": "application/json",
         },
-      },
-    );
-
-    console.log("Update Response:", response.data);
-
-    toast.success("Promocode Updated Successfully");
-    setModalUpdateOpen(false);
-    fetchPromocode();
-  } catch (error: any) {
-    console.error(
-      "Error in Update Promocode:",
-      error.response?.data || error.message || error,
-    );
-
-    const errorMessage =
-      error.response?.data?.message ||
-      error.response?.data?.error ||
-      "Failed to update promocode";
-
-    toast.error(errorMessage);
-  }
-};
-
+      });
+      toast.success("Promocode Updated Successfully");
+      setModalUpdateOpen(false);
+      fetchPromocode();
+    } catch (error: any) {
+      console.error(
+        "Error in Update Promocode:",
+        error.response?.data || error.message || error,
+      );
+      const errorMessage =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        "Failed to update promocode";
+      toast.error(errorMessage);
+    }
+  };
 
   const submitDeletePromoCode = async () => {
     if (!selectedPromoCode) return;
@@ -175,10 +159,9 @@ const submitUpdatePromoCode = async (promoData: PromoCode) => {
       <div className="mb-4 flex justify-center">
         <button
           onClick={handleAddPromoCode}
-          className="relative inline-block rounded-lg border-2 border-green-700 bg-white px-8 py-3 text-lg font-semibold text-green-700 shadow-md transition-transform duration-300 ease-in-out hover:scale-105 hover:bg-green-700 hover:text-white active:scale-95 dark:border-green-400 dark:bg-gray-900 dark:text-green-400 dark:hover:bg-green-400 dark:hover:text-gray-900"
+          className="relative inline-block rounded-lg border-2 border-green-700 bg-white px-8 py-3 text-lg font-semibold text-green-700 shadow-md transition-transform duration-300 ease-in-out hover:scale-105 hover:bg-green-700 hover:text-white"
         >
           Add New Promocode
-          <span className="absolute -bottom-1 left-1/2 h-1 w-0 -translate-x-1/2 rounded bg-green-400 transition-all duration-300 hover:w-full"></span>
         </button>
       </div>
 
@@ -199,11 +182,13 @@ const submitUpdatePromoCode = async (promoData: PromoCode) => {
             {promoCodes.map((promo, index) => (
               <tr
                 key={`promo-${index}`}
-                className={`border-b border-green-300 bg-white transition-colors duration-300 hover:bg-green-100 dark:bg-gray-900 dark:hover:bg-green-800 ${
-                  index % 2 === 0 ? "bg-green-50 dark:bg-green-900" : ""
+                className={`border-b border-green-300 transition-colors duration-300 hover:bg-green-100 dark:hover:bg-green-800 ${
+                  index % 2 === 0
+                    ? "bg-green-50 dark:bg-green-900"
+                    : "bg-white dark:bg-gray-900"
                 }`}
               >
-                <td className="px-6 py-4 font-semibold tracking-wide text-green-700 dark:text-green-400">
+                <td className="px-6 py-4 font-semibold text-green-700 dark:text-green-400">
                   {promo.promocode}
                 </td>
                 <td className="px-6 py-4">{promo.quantity}</td>
@@ -212,21 +197,19 @@ const submitUpdatePromoCode = async (promoData: PromoCode) => {
                 </td>
                 <td className="px-6 py-4">{promo.applicableTo}</td>
                 <td className="px-6 py-4">{promo.forCollege}</td>
-                <td className="whitespace-nowrap px-6 py-4 font-mono text-sm text-gray-600 dark:text-gray-400">
+                <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
                   {formatDate(promo.validTill)}
                 </td>
                 <td className="flex items-center gap-4 px-6 py-4">
                   <FaEdit
                     onClick={() => handleUpdatePromoCode(promo)}
-                    className="cursor-pointer text-yellow-600 transition-transform duration-300 hover:scale-110 hover:text-yellow-400"
+                    className="cursor-pointer text-yellow-600 hover:scale-110 hover:text-yellow-400"
                     size={20}
-                    aria-label="Edit Promo"
                   />
                   <FaTrash
                     onClick={() => handleDeletePromoCode(promo)}
-                    className="cursor-pointer text-red-600 transition-transform duration-300 hover:scale-110 hover:text-red-400"
+                    className="cursor-pointer text-red-600 hover:scale-110 hover:text-red-400"
                     size={20}
-                    aria-label="Delete Promo"
                   />
                 </td>
               </tr>
@@ -263,6 +246,13 @@ const submitUpdatePromoCode = async (promoData: PromoCode) => {
               discountPercentage: parseFloat(data.discountPercentage),
             })
           }
+        />
+      )}
+
+      {modalDeleteOpen && selectedPromoCode && (
+        <DeleteModal
+          handleToggleOpen={() => setModalDeleteOpen(false)} // ✅ now matches DeleteModalProps
+          deleteHandler={submitDeletePromoCode}
         />
       )}
 

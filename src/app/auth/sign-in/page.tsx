@@ -15,9 +15,9 @@ export default function SignIn() {
     if (token) {
       router.push("/");
     } else {
-      setCheckingAuth(false); // show login form
+      setCheckingAuth(false);
     }
-  }, []);
+  }, [router]); // <-- add router here
 
   if (checkingAuth) {
     return (

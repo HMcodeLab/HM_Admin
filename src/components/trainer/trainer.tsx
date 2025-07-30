@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import { CiEdit as Edit } from "react-icons/ci";
 import { FaRegUser as User } from "react-icons/fa6";
@@ -31,36 +31,42 @@ const Trainer: React.FC = () => {
   const adminToken =
     typeof window !== "undefined" ? localStorage.getItem("adminToken") : null;
 
-  const fetchData = async (name: string = "") => {
-    setLoading(true);
-    try {
-      const endpoint = name
-        ? `${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/searchinstructor?name=${name}`
-        : `${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/instructors`;
+  // Wrap fetchData in useCallback so it can be a stable dependency in useEffect
+  const fetchData = useCallback(
+    async (name: string = "") => {
+      setLoading(true);
+      try {
+        const endpoint = name
+          ? `${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/searchinstructor?name=${encodeURIComponent(name)}`
+          : `${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/instructors`;
 
-      const response = await axios.get(endpoint, {
-        headers: {
-          Authorization: `Bearer ${adminToken}`,
-        },
-      });
-      setInstructors(response.data.data);
-    } catch (error: any) {
-      toast.error(error?.message || "Failed to fetch instructors");
-    } finally {
-      setLoading(false);
-    }
-  };
+        const response = await axios.get(endpoint, {
+          headers: {
+            Authorization: `Bearer ${adminToken}`,
+          },
+        });
+        setInstructors(response.data.data);
+      } catch (error: any) {
+        toast.error(error?.message || "Failed to fetch instructors");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [adminToken],
+  );
 
+  // Fetch instructors on mount
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchData]);
 
+  // Fetch instructors on search with debounce
   useEffect(() => {
     const delayDebounce = setTimeout(() => {
       fetchData(search);
     }, 500);
     return () => clearTimeout(delayDebounce);
-  }, [search]);
+  }, [search, fetchData]);
 
   const handleDeleteInstructor = async () => {
     if (!selectedInstructorId) return;
@@ -96,7 +102,6 @@ const Trainer: React.FC = () => {
       localStorage.setItem("instructorId", instructor._id);
     }
     router.push(`/trainer/edit/${instructor._id}`);
-    // Loader will stay until page navigates
   };
 
   const handleViewProfile = (email: string) => {

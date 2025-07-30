@@ -63,7 +63,7 @@ interface PageProps {
 
 const profilePlaceholder = "/assets/person.png"; // public folder mein rakho image ya external URL
 
-export default function page({ params }: PageProps) {
+export default function Page({ params }: PageProps) {
   const { slug } = params;
 
   const [studentDetail, setStudentDetail] = useState<StudentDetail | null>(

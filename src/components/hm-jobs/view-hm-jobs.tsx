@@ -1,11 +1,12 @@
 "use client";
 
 import axios from "axios";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
 import { FaEdit, FaTrash, FaUpload } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import Loader from "@/components/Loader";
+import Image from "next/image";
 
 interface Job {
   _id: string;
@@ -55,11 +56,10 @@ const ViewHMJobs: React.FC = () => {
     }
   };
 
-
   const adminToken =
     typeof window !== "undefined" ? localStorage.getItem("adminToken") : null;
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const response = await axios.get(
         `${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/getAllInHousePlacement`,
@@ -81,11 +81,12 @@ const ViewHMJobs: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [adminToken]);
 
+  
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchData]);
 
   const handleEdit = (id: string) => {
     router.push(`/hm-jobs/update/${id}`);
@@ -118,7 +119,6 @@ const ViewHMJobs: React.FC = () => {
       toast.error("Error updating job status.");
     }
   };
-
 
   const handleFileChange = (
     event: React.ChangeEvent<HTMLInputElement>,
@@ -192,10 +192,12 @@ const ViewHMJobs: React.FC = () => {
                   <td className="px-6 py-4">{index + 1}</td>
                   <td className="px-6 py-3">{job.position}</td>
                   <td className="flex items-center gap-2 px-6 py-3">
-                    <img
+                    <Image
                       src={job.logoUrl}
                       alt="logo"
-                      className="h-10 w-10 rounded-full ring-2 ring-green-500"
+                      width={40}
+                      height={40}
+                      className="rounded-full ring-2 ring-green-500"
                     />
                     {job.company}
                   </td>

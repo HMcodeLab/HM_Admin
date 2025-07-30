@@ -1,14 +1,13 @@
 "use client";
 
 import React, { useRef, useState, useEffect } from "react";
-import { FreelancePost, WorkExperience } from "@/types";
+import Image from "next/image"; // ✅ Import Next.js Image
+import { FreelancePost } from "@/types";
 
 interface ImageUploaderProps {
   freelancePost: FreelancePost;
   setFreelancePost: React.Dispatch<React.SetStateAction<FreelancePost>>;
 }
-
-
 
 const ImageUploader: React.FC<ImageUploaderProps> = ({
   freelancePost,
@@ -19,7 +18,6 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
     freelancePost.logoUrl || "",
   );
 
-  // Clean up the created object URL to avoid memory leaks
   useEffect(() => {
     return () => {
       if (selectedImage && selectedImage.startsWith("blob:")) {
@@ -66,11 +64,14 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
 
       <div className="flex w-full flex-col items-start gap-2 sm:flex-row sm:items-center">
         {selectedImage && (
-          <img
-            src={selectedImage}
-            alt="Logo Preview"
-            className="h-16 w-16 rounded border object-cover dark:border-gray-600"
-          />
+          <div className="relative h-16 w-16">
+            <Image
+              src={selectedImage}
+              alt="Logo Preview"
+              fill // ✅ makes it responsive
+              className="rounded border object-cover dark:border-gray-600"
+            />
+          </div>
         )}
 
         <input

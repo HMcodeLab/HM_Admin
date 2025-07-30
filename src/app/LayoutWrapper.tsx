@@ -46,7 +46,14 @@ export default function LayoutWrapper({
     } else {
       setIsLoggedIn(true);
     }
-  }, [pathname]);
+  }, [pathname, isAuthPage]);
+
+  useEffect(() => {
+    if (isLoggedIn === false && !isAuthPage) {
+      toast.error("Please login to continue.");
+      router.push("/auth/sign-in");
+    }
+  }, [isLoggedIn, isAuthPage, router]);
 
   useEffect(() => {
     if (isLoggedIn === false && !isAuthPage) {
@@ -77,7 +84,8 @@ export default function LayoutWrapper({
         <div className="flex h-screen overflow-hidden">
           <div className="w-74 flex-shrink-0 bg-white dark:bg-[#0c1a2b]">
             {/* Pass empty string if userRole is null */}
-            <Sidebar userRole={userRole ?? ""} />
+            {/* <Sidebar userRole={userRole ?? ""} /> */}
+            <Sidebar userRole="superAdmin" />
           </div>
           <div className="flex flex-1 flex-col overflow-hidden bg-gray-2 dark:bg-[#020d1a]">
             <Header />

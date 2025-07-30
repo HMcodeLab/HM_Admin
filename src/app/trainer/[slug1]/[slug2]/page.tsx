@@ -32,7 +32,7 @@ interface InstructorForm {
   password?: string;
 }
 
-const page: React.FC = () => {
+const Page: React.FC = () => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<InstructorForm>({
@@ -411,4 +411,4 @@ const page: React.FC = () => {
   );
 };
 
-export default page;
+export default Page;
