@@ -1,4 +1,5 @@
-import { TrainerHeader } from "@/components/trainer/dashboard/trainerheader";
+import { TrainerHeader } from "@/components/trainer/dashboard/TrainerHeader";
+
 
 const page = () => {
   return (
