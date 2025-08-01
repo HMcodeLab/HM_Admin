@@ -3,6 +3,7 @@
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
 
+// Types
 type Instructor = {
   profile?: string;
   name: string;
@@ -12,8 +13,15 @@ type Instructor = {
   bio: string;
 };
 
+type Lesson = {
+  id: string;
+  title: string;
+  duration: number;
+};
+
 type CurriculumChapter = {
-  lessons: any[];
+  title: string;
+  lessons: Lesson[];
 };
 
 type Course = {
@@ -29,7 +37,7 @@ type Course = {
 
 type PurchasedCourse = {
   course: Course;
-  completed_lessons: any[]; // specify if you have lesson type
+  completed_lessons: string[]; // Array of lesson IDs
 };
 
 type StudentDetail = {
@@ -52,82 +60,105 @@ type StudentDetail = {
   isCourseCompleted?: boolean;
   isCoursePaid?: boolean;
   degree?: string;
-  role?: string; // optional, if you want to include user role
+  role?: string;
 };
 
 interface PageProps {
-  params: {
-    slug: string;
-  };
+  params: { slug: string };
+  searchParams?: { [key: string]: string | string[] | undefined };
 }
 
-const profilePlaceholder = "/assets/person.png"; // public folder mein rakho image ya external URL
+// Constants
+const PROFILE_PLACEHOLDER = "/assets/person.png";
+const ITEMS_PER_PAGE_OPTIONS = [10, 20, 30] as const;
 
-export default function Page({ params }: PageProps) {
+export default function StudentDetailsPage({ params }: PageProps) {
   const { slug } = params;
-
   const [studentDetail, setStudentDetail] = useState<StudentDetail | null>(
     null,
   );
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"personal" | "course">("personal");
+  const [itemsPerPage, setItemsPerPage] = useState<number>(10);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState<PurchasedCourse | null>(
+    null,
+  );
 
-  // Pagination state (for courses list)
-  const [itemsPerPage, setItemsPerPage] = useState<number>(30);
-  const [currentPage, setCurrentPage] = useState<number>(1);
-
-  // Fetch student data on slug change
+  // Fetch student data
   useEffect(() => {
-    async function fetchStudent() {
-      setLoading(true);
+    const fetchStudent = async () => {
       try {
-        // Adjust your API endpoint as needed
-        const res = await fetch(
+        setLoading(true);
+        setError(null);
+
+        const response = await fetch(
           `${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/user/${slug}`,
+          { cache: "no-store" },
         );
 
-        if (!res.ok) throw new Error("Failed to fetch student");
+        if (!response.ok) {
+          throw new Error(`Failed to fetch: ${response.status}`);
+        }
 
-        const data = await res.json();
-        console.log("Fetched student data:", data);
+        const data = await response.json();
         setStudentDetail(data.userDetails);
-      } catch (error) {
-        console.error("Error fetching student:", error);
+      } catch (err) {
+        console.error("Fetch error:", err);
+        setError(
+          err instanceof Error ? err.message : "Failed to fetch student",
+        );
         setStudentDetail(null);
       } finally {
         setLoading(false);
       }
-    }
+    };
+
     fetchStudent();
   }, [slug]);
 
+  // Calculate course progress
+  const calculateCourseProgress = (course: PurchasedCourse) => {
+    const totalLessons =
+      course.course.curriculum?.reduce(
+        (sum, chapter) => sum + chapter.lessons.length,
+        0,
+      ) || 0;
+
+    const completed = course.completed_lessons.length;
+    const progress =
+      totalLessons > 0 ? Math.round((completed / totalLessons) * 100) : 0;
+
+    return { totalLessons, completed, progress };
+  };
+
   // Calculate overall progress
-  function calculateOverallProgress() {
-    if (!studentDetail?.purchased_courses)
+  const calculateOverallProgress = () => {
+    if (!studentDetail?.purchased_courses) {
       return { overallProgress: 0, completedLessons: 0, totalLessons: 0 };
+    }
 
     let totalLessons = 0;
     let completedLessons = 0;
 
     studentDetail.purchased_courses.forEach((course) => {
-      const lessonsCount = course.course.curriculum
-        ? course.course.curriculum.reduce(
-            (acc, ch) => acc + ch.lessons.length,
-            0,
-          )
-        : 0;
-      totalLessons += lessonsCount;
-      completedLessons += course.completed_lessons.length;
+      const { totalLessons: courseTotal, completed } =
+        calculateCourseProgress(course);
+      totalLessons += courseTotal;
+      completedLessons += completed;
     });
 
-    const overallProgress = totalLessons
-      ? Math.round((completedLessons / totalLessons) * 100)
-      : 0;
+    const overallProgress =
+      totalLessons > 0
+        ? Math.round((completedLessons / totalLessons) * 100)
+        : 0;
 
     return { overallProgress, completedLessons, totalLessons };
-  }
+  };
 
-  // Pagination logic for courses
+  // Pagination
   const courses = studentDetail?.purchased_courses || [];
   const totalPages = Math.ceil(courses.length / itemsPerPage);
   const paginatedCourses = courses.slice(
@@ -135,358 +166,406 @@ export default function Page({ params }: PageProps) {
     currentPage * itemsPerPage,
   );
 
-  // Modal state and selected course (if needed)
-  const [modalOpen, setModalOpen] = useState(false);
-  const [selectedCourse, setSelectedCourse] = useState<PurchasedCourse | null>(
-    null,
-  );
-
-  const openModal = (course: PurchasedCourse) => {
+  // Modal handlers
+  const handleOpenModal = (course: PurchasedCourse) => {
     setSelectedCourse(course);
     setModalOpen(true);
   };
 
-  const closeModal = () => {
+  const handleCloseModal = () => {
     setModalOpen(false);
     setSelectedCourse(null);
   };
 
-  if (loading)
-    return <div className="p-4 text-center dark:text-white">Loading...</div>;
-
-  if (!studentDetail)
+  // Loading and error states
+  if (loading) {
     return (
-      <div className="p-4 text-center dark:text-white">Student not found</div>
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-xl font-semibold">Loading student data...</div>
+      </div>
     );
+  }
+
+  if (error) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-xl font-semibold text-red-500">{error}</div>
+      </div>
+    );
+  }
+
+  if (!studentDetail) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-xl font-semibold">Student not found</div>
+      </div>
+    );
+  }
 
   const { overallProgress, completedLessons, totalLessons } =
     calculateOverallProgress();
 
   return (
-    <div className="min-h-screen bg-white p-6 text-gray-900 transition-colors duration-300 dark:bg-gray-900 dark:text-gray-100">
-      <h1 className="mb-6 text-center text-4xl font-bold underline">
-        Student Details
-      </h1>
+    <div className="min-h-screen bg-white p-6 text-gray-900 dark:bg-gray-900 dark:text-gray-100">
+      {/* Header Section */}
+      <header className="mb-10">
+        <h1 className="mb-6 text-center text-3xl font-bold md:text-4xl">
+          Student Details
+        </h1>
 
-      {/* Header */}
-      <div className="mx-auto mb-10 flex max-w-6xl flex-col items-center justify-between gap-6 md:flex-row">
-        <div className="flex flex-col items-center space-y-3">
-          <Image
-            src={studentDetail.profile || profilePlaceholder}
-            alt="Profile image"
-            className="h-32 w-32 rounded-full border object-cover"
-            width={128}
-            height={128}
-          />
-          <p className="text-2xl font-semibold capitalize">
-            {studentDetail.name}
-          </p>
+        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-6 md:flex-row">
+          <div className="flex flex-col items-center space-y-3">
+            <div className="relative h-32 w-32">
+              <Image
+                src={studentDetail.profile || PROFILE_PLACEHOLDER}
+                alt="Profile"
+                fill
+                className="rounded-full border object-cover"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = PROFILE_PLACEHOLDER;
+                }}
+              />
+            </div>
+            <p className="text-2xl font-semibold capitalize">
+              {studentDetail.name}
+            </p>
+          </div>
+
+          <div className="w-full rounded-lg bg-blue-50 p-6 shadow-md dark:bg-blue-900 md:w-72">
+            <p className="mb-4 text-xl font-semibold">Overall Progress</p>
+            <div className="flex items-end justify-between">
+              <p className="text-5xl font-bold text-blue-600 dark:text-blue-400">
+                {overallProgress}%
+              </p>
+              <p className="text-lg">
+                <span className="font-semibold text-green-600 dark:text-green-400">
+                  {completedLessons}
+                </span>{" "}
+                / {totalLessons}
+              </p>
+            </div>
+          </div>
         </div>
+      </header>
 
-        {/* Overall Progress Card */}
-        <div className="w-72 rounded-md bg-pink-100 p-6 text-center shadow-lg dark:bg-pink-900">
-          <p className="mb-4 text-2xl font-semibold">Overall Progress</p>
-          <p className="text-6xl font-bold text-pink-600 dark:text-pink-400">
-            {overallProgress}%
-          </p>
-          <p className="text-xl">
-            <span className="font-semibold text-green-500">
-              {completedLessons}
-            </span>{" "}
-            / {totalLessons} lessons
-          </p>
+      {/* Tabs Navigation */}
+      <nav className="mx-auto mb-8 max-w-6xl">
+        <div className="flex border-b dark:border-gray-700">
+          <button
+            onClick={() => setActiveTab("personal")}
+            className={`px-6 py-3 font-medium transition-colors ${
+              activeTab === "personal"
+                ? "border-b-2 border-blue-500 text-blue-600 dark:text-blue-400"
+                : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
+            }`}
+          >
+            Personal Details
+          </button>
+          <button
+            onClick={() => setActiveTab("course")}
+            className={`px-6 py-3 font-medium transition-colors ${
+              activeTab === "course"
+                ? "border-b-2 border-blue-500 text-blue-600 dark:text-blue-400"
+                : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
+            }`}
+          >
+            Course Details
+          </button>
         </div>
-      </div>
+      </nav>
 
-      {/* Tabs */}
-      <div className="mx-auto mb-6 flex max-w-6xl justify-center space-x-4 border-b-4 border-gray-300 dark:border-gray-700">
-        <button
-          onClick={() => setActiveTab("personal")}
-          className={`border-b-4 px-6 py-2 font-semibold ${
-            activeTab === "personal"
-              ? "border-green-500 text-green-600 dark:text-green-400"
-              : "border-transparent text-gray-600 dark:text-gray-400"
-          } transition-colors`}
-        >
-          Personal Details
-        </button>
-        <button
-          onClick={() => setActiveTab("course")}
-          className={`border-b-4 px-6 py-2 font-semibold ${
-            activeTab === "course"
-              ? "border-green-500 text-green-600 dark:text-green-400"
-              : "border-transparent text-gray-600 dark:text-gray-400"
-          } transition-colors`}
-        >
-          Course Details
-        </button>
-      </div>
-
-      {/* Tab Panels */}
-      {activeTab === "personal" && (
-        <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 md:grid-cols-2">
-          {/* Personal Info */}
-          <div className="mx-auto max-w-xl rounded-md bg-gray-100 p-6 shadow-md dark:bg-gray-800">
-            <h2 className="mb-6 border-b pb-2 text-2xl font-semibold dark:text-white">
-              Personal Details
-            </h2>
-            <table className="w-full border-collapse text-left">
-              <tbody>
+      {/* Tab Content */}
+      <main className="mx-auto max-w-6xl">
+        {activeTab === "personal" ? (
+          <div className="grid gap-6 md:grid-cols-2">
+            {/* Personal Details Card */}
+            <div className="rounded-lg border bg-gray-50 p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+              <h2 className="mb-4 text-xl font-semibold">
+                Personal Information
+              </h2>
+              <div className="space-y-4">
                 {[
-                  { label: "Full Name", value: studentDetail?.name },
-                  { label: "Email", value: studentDetail?.email },
-                  { label: "Phone", value: studentDetail?.phone || "-" },
-                  { label: "College", value: studentDetail?.college || "-" },
-                  { label: "Degree", value: studentDetail?.degree || "-" },
-                  { label: "Address", value: studentDetail?.address || "-" },
+                  { label: "Full Name", value: studentDetail.name },
+                  { label: "Email", value: studentDetail.email },
                   {
-                    label: "Is Course Opened",
-                    value: studentDetail?.isCourseOpened ? "YES" : "NO",
+                    label: "Phone",
+                    value: studentDetail.phone || "Not provided",
                   },
                   {
-                    label: "Is Course Completed",
-                    value: studentDetail?.isCourseCompleted ? "YES" : "NO",
+                    label: "College",
+                    value: studentDetail.college || "Not provided",
                   },
                   {
-                    label: "Is Course Paid",
-                    value: studentDetail?.isCoursePaid ? "YES" : "NO",
+                    label: "Degree",
+                    value: studentDetail.degree || "Not provided",
+                  },
+                  {
+                    label: "Address",
+                    value: studentDetail.address || "Not provided",
                   },
                   {
                     label: "Registered On",
-                    value: studentDetail?.createdAt
-                      ? new Date(studentDetail.createdAt).toLocaleDateString()
-                      : "-",
+                    value: new Date(
+                      studentDetail.createdAt,
+                    ).toLocaleDateString(),
                   },
-                ].map(({ label, value }) => (
-                  <tr
-                    key={label}
-                    className="border-b border-gray-300 dark:border-gray-700"
+                ].map((item) => (
+                  <div
+                    key={item.label}
+                    className="border-b pb-2 dark:border-gray-700"
                   >
-                    <th className="w-1/3 px-4 py-3 font-medium text-gray-700 dark:text-gray-300">
-                      {label}
-                    </th>
-                    <td className="px-4 py-3 text-gray-900 dark:text-gray-100">
-                      {value}
-                    </td>
-                  </tr>
+                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                      {item.label}
+                    </p>
+                    <p className="text-lg">{item.value}</p>
+                  </div>
                 ))}
-              </tbody>
-            </table>
-          </div>
+              </div>
+            </div>
 
-          {/* Additional Info */}
-          <div className="mx-auto max-w-xl rounded-md bg-gray-100 p-6 shadow-md dark:bg-gray-800">
-            <h2 className="mb-6 border-b pb-2 text-2xl font-semibold dark:text-white">
-              Additional Details
-            </h2>
-            <table className="w-full border-collapse text-left">
-              <tbody>
+            {/* Additional Details Card */}
+            <div className="rounded-lg border bg-gray-50 p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+              <h2 className="mb-4 text-xl font-semibold">
+                Additional Information
+              </h2>
+              <div className="space-y-4">
                 {[
-                  { label: "Role", value: studentDetail?.role || "-" },
                   {
                     label: "Date of Birth",
-                    value: studentDetail?.dateOfBirth || "-",
+                    value: studentDetail.dateOfBirth || "Not provided",
                   },
-                  { label: "Gender", value: studentDetail?.gender || "-" },
+                  {
+                    label: "Gender",
+                    value: studentDetail.gender || "Not provided",
+                  },
                   {
                     label: "Nationality",
-                    value: studentDetail?.nationality || "-",
+                    value: studentDetail.nationality || "Not provided",
                   },
-                  { label: "Status", value: studentDetail?.status || "-" },
+                  {
+                    label: "Status",
+                    value: studentDetail.status || "Not provided",
+                  },
                   {
                     label: "Academic Qualification",
-                    value: studentDetail?.academicQualification || "-",
+                    value:
+                      studentDetail.academicQualification || "Not provided",
                   },
                   {
                     label: "Experience",
-                    value: studentDetail?.experience || "-",
+                    value: studentDetail.experience || "Not provided",
                   },
-                ].map(({ label, value }) => (
-                  <tr
-                    key={label}
-                    className="border-b border-gray-300 dark:border-gray-700"
+                ].map((item) => (
+                  <div
+                    key={item.label}
+                    className="border-b pb-2 dark:border-gray-700"
                   >
-                    <th className="w-1/3 px-4 py-3 font-medium text-gray-700 dark:text-gray-300">
-                      {label}
-                    </th>
-                    <td className="px-4 py-3 text-gray-900 dark:text-gray-100">
-                      {value}
-                    </td>
-                  </tr>
+                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                      {item.label}
+                    </p>
+                    <p className="text-lg">{item.value}</p>
+                  </div>
                 ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
-      {activeTab === "course" && (
-        <div className="mx-auto max-w-6xl">
-          {/* Pagination controls */}
-          <div className="mb-4 flex items-center justify-between">
-            <div>
-              Show{" "}
-              <select
-                value={itemsPerPage}
-                onChange={(e) => {
-                  setItemsPerPage(parseInt(e.target.value, 10));
-                  setCurrentPage(1); // reset page on change
-                }}
-                className="rounded border border-gray-300 bg-white px-2 py-1 text-gray-900 dark:border-gray-700 dark:bg-gray-700 dark:text-gray-100"
-              >
-                {[30, 50, 100].map((n) => (
-                  <option key={n} value={n}>
-                    {n}
-                  </option>
-                ))}
-              </select>{" "}
-              entries
-            </div>
-
-            <div>
-              Page{" "}
-              <button
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                className="mr-2 rounded border border-gray-300 px-2 py-1 disabled:opacity-50 dark:border-gray-700"
-              >
-                Prev
-              </button>
-              <span>
-                {currentPage} / {totalPages || 1}
-              </span>
-              <button
-                onClick={() =>
-                  setCurrentPage((p) => Math.min(totalPages, p + 1))
-                }
-                disabled={currentPage === totalPages || totalPages === 0}
-                className="ml-2 rounded border border-gray-300 px-2 py-1 disabled:opacity-50 dark:border-gray-700"
-              >
-                Next
-              </button>
+              </div>
             </div>
           </div>
-
-          {/* Course cards */}
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {paginatedCourses.map((course, idx) => {
-              const totalLessonsCount = course.course.curriculum
-                ? course.course.curriculum.reduce(
-                    (acc, ch) => acc + ch.lessons.length,
-                    0,
-                  )
-                : 0;
-              const completed = course.completed_lessons.length;
-              const progressPercent = totalLessonsCount
-                ? Math.round((completed / totalLessonsCount) * 100)
-                : 0;
-
-              return (
-                <div
-                  key={course.course.courseID}
-                  className="flex flex-col justify-between rounded-md border bg-gray-50 p-4 shadow-md dark:bg-gray-800"
+        ) : (
+          <div className="space-y-6">
+            {/* Courses Pagination Controls */}
+            <div className="flex flex-col justify-between gap-4 sm:flex-row">
+              <div className="flex items-center space-x-2">
+                <span>Show:</span>
+                <select
+                  value={itemsPerPage}
+                  onChange={(e) => {
+                    setItemsPerPage(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                  className="rounded-md border px-3 py-1 dark:border-gray-700 dark:bg-gray-800"
                 >
-                  <h3 className="mb-2 text-lg font-semibold">
-                    {course.course.title}
-                  </h3>
-                  <p>Total Lessons: {totalLessonsCount}</p>
-                  <p>Completed Lessons: {completed}</p>
-                  <p>Progress: {progressPercent}%</p>
-                  <button
-                    className="mt-3 self-start text-blue-600 underline dark:text-blue-400"
-                    onClick={() => openModal(course)}
-                  >
-                    View More
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
+                  {ITEMS_PER_PAGE_OPTIONS.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+                <span>entries</span>
+              </div>
 
-      {/* Modal */}
+              <div className="flex items-center space-x-4">
+                <button
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.max(1, prev - 1))
+                  }
+                  disabled={currentPage === 1}
+                  className="rounded-md border px-3 py-1 disabled:opacity-50 dark:border-gray-700"
+                >
+                  Previous
+                </button>
+                <span>
+                  Page {currentPage} of {totalPages || 1}
+                </span>
+                <button
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+                  }
+                  disabled={currentPage === totalPages || totalPages === 0}
+                  className="rounded-md border px-3 py-1 disabled:opacity-50 dark:border-gray-700"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+
+            {/* Courses Grid */}
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {paginatedCourses.map((course) => {
+                const { progress, totalLessons, completed } =
+                  calculateCourseProgress(course);
+
+                return (
+                  <div
+                    key={course.course.courseID}
+                    className="rounded-lg border bg-gray-50 p-4 shadow-sm transition-all hover:shadow-md dark:border-gray-700 dark:bg-gray-800"
+                  >
+                    <h3 className="mb-2 line-clamp-2 text-lg font-semibold">
+                      {course.course.title}
+                    </h3>
+
+                    <div className="mb-3 h-2 w-full rounded-full bg-gray-200 dark:bg-gray-700">
+                      <div
+                        className="h-2 rounded-full bg-green-500"
+                        style={{ width: `${progress}%` }}
+                      />
+                    </div>
+
+                    <div className="flex justify-between text-sm">
+                      <span>Progress: {progress}%</span>
+                      <span>
+                        {completed}/{totalLessons} lessons
+                      </span>
+                    </div>
+
+                    <button
+                      onClick={() => handleOpenModal(course)}
+                      className="mt-3 text-sm font-medium text-blue-600 hover:underline dark:text-blue-400"
+                    >
+                      View Details
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+
+            {paginatedCourses.length === 0 && (
+              <div className="rounded-lg border bg-gray-50 p-8 text-center dark:border-gray-700 dark:bg-gray-800">
+                <p className="text-lg">No courses found</p>
+              </div>
+            )}
+          </div>
+        )}
+      </main>
+
+      {/* Course Details Modal */}
       {modalOpen && selectedCourse && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60"
-          onClick={closeModal}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          onClick={handleCloseModal}
         >
           <div
-            className="max-h-[80vh] max-w-4xl overflow-y-auto rounded-lg bg-white p-6 dark:bg-gray-900"
+            className="w-full max-w-2xl rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="mb-4 text-center text-xl font-semibold underline">
-              Course Details
-            </h2>
-            <p>
-              <strong>Course Name:</strong> {selectedCourse.course.title}
-            </p>
-            <p className="mb-2">
-              <strong>Overview:</strong>{" "}
-              <span className="whitespace-pre-line">
-                {selectedCourse.course.overview.replace(/•/g, "\n•")}
-              </span>
-            </p>
-            <p>
-              <strong>Course Code:</strong> {selectedCourse.course.courseID}
-            </p>
-            <p>
-              <strong>Category:</strong> {selectedCourse.course.category}
-            </p>
-            <p>
-              <strong>Level:</strong> {selectedCourse.course.level}
-            </p>
-            <p>
-              <strong>Cost:</strong> ₹ {selectedCourse.course.base_price}
-            </p>
+            <div className="mb-4 flex justify-between">
+              <h2 className="text-xl font-bold">
+                {selectedCourse.course.title}
+              </h2>
+              <button
+                onClick={handleCloseModal}
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                ✕
+              </button>
+            </div>
 
-            {selectedCourse.course.instructor ? (
-              <div className="mt-6 border-t pt-4">
-                <h3 className="mb-2 text-lg font-semibold underline">
-                  Instructor Details
-                </h3>
-                <div className="flex items-center gap-4">
-                  <Image
-                    src={
-                      selectedCourse.course.instructor.profile ||
-                      profilePlaceholder
-                    }
-                    alt="Instructor"
-                    className="h-24 w-24 rounded-full border object-cover"
-                  />
-                  <div className="text-sm">
-                    <p>
-                      <strong>Name:</strong>{" "}
-                      {selectedCourse.course.instructor.name}
-                    </p>
-                    <p>
-                      <strong>Email:</strong>{" "}
-                      {selectedCourse.course.instructor.email}
-                    </p>
-                    <p>
-                      <strong>Phone:</strong>{" "}
-                      {selectedCourse.course.instructor.phone}
-                    </p>
-                    <p>
-                      <strong>Experience:</strong>{" "}
-                      {selectedCourse.course.instructor.experience}
-                    </p>
+            <div className="space-y-4">
+              <div>
+                <h3 className="font-semibold">Course Overview</h3>
+                <p className="whitespace-pre-line text-gray-700 dark:text-gray-300">
+                  {selectedCourse.course.overview}
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Course ID
+                  </p>
+                  <p>{selectedCourse.course.courseID}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Category
+                  </p>
+                  <p>{selectedCourse.course.category}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Level
+                  </p>
+                  <p>{selectedCourse.course.level}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Price
+                  </p>
+                  <p>₹{selectedCourse.course.base_price}</p>
+                </div>
+              </div>
+
+              {selectedCourse.course.instructor && (
+                <div className="mt-6 border-t pt-4">
+                  <h3 className="mb-3 text-lg font-semibold">Instructor</h3>
+                  <div className="flex items-start gap-4">
+                    <div className="relative h-16 w-16 flex-shrink-0">
+                      <Image
+                        src={
+                          selectedCourse.course.instructor.profile ||
+                          PROFILE_PLACEHOLDER
+                        }
+                        alt="Instructor"
+                        fill
+                        className="rounded-full border object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src =
+                            PROFILE_PLACEHOLDER;
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <p className="font-medium">
+                        {selectedCourse.course.instructor.name}
+                      </p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        {selectedCourse.course.instructor.email}
+                      </p>
+                      <p className="mt-2 text-sm">
+                        {selectedCourse.course.instructor.experience}
+                      </p>
+                    </div>
                   </div>
                 </div>
-                <p className="mt-2">{selectedCourse.course.instructor.bio}</p>
-              </div>
-            ) : (
-              <p className="mt-6 text-center font-semibold">
-                No Instructor Details Found
-              </p>
-            )}
+              )}
 
-            <button
-              onClick={closeModal}
-              className="mt-6 rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700"
-            >
-              Close
-            </button>
+              <div className="mt-6 flex justify-end">
+                <button
+                  onClick={handleCloseModal}
+                  className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
