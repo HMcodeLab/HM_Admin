@@ -14,10 +14,13 @@ import { LogOutIcon, UserIcon } from "./icons";
 import { jwtDecode } from "jwt-decode";
 import { toast } from "react-hot-toast";
 import { CiUser } from "react-icons/ci";
+import { useRouter } from "next/navigation";
+import Cookies from "js-cookie";
 
 const API_URL = process.env.NEXT_PUBLIC_SERVER_DOMAIN;
 
 export function UserInfo() {
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [user, setUser] = useState({
     name: "Loading...",
@@ -29,7 +32,6 @@ export function UserInfo() {
     const token = localStorage.getItem("adminToken");
 
     if (!token) {
-      toast.error("No token found");
       return;
     }
 
@@ -62,21 +64,25 @@ export function UserInfo() {
               email: data.data.email || "",
               profilePhoto: data.data.profile || "",
             });
-          } else {
-            toast.error(data.message || "Failed to fetch user data");
           }
         } catch (error) {
-          toast.error("Error fetching user data");
           console.error("Fetch error:", error);
         }
       };
 
       fetchUser();
     } catch (err) {
-      toast.error("Invalid token");
       console.error("Token decode error:", err);
     }
   }, []);
+
+  const handleLogout = () => {
+    setIsOpen(false);
+    localStorage.removeItem("adminToken");
+    Cookies.remove("adminToken");
+    router.push("/auth/sign-in");
+    router.refresh(); // Ensure the page state updates
+  };
 
   return (
     <Dropdown isOpen={isOpen} setIsOpen={setIsOpen}>
@@ -155,11 +161,7 @@ export function UserInfo() {
         <div className="p-2 text-base text-[#4B5563] dark:text-dark-6">
           <button
             className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-[9px] hover:bg-gray-2 hover:text-dark dark:hover:bg-dark-3 dark:hover:text-white"
-            onClick={() => {
-              setIsOpen(false);
-              localStorage.removeItem("adminToken");
-              window.location.href = "/auth/sign-in";
-            }}
+            onClick={handleLogout}
           >
             <LogOutIcon />
             <span className="text-base font-medium">Log out</span>

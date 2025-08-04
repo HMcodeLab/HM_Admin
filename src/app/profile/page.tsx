@@ -1,52 +1,47 @@
 "use client";
 
-import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
-import Image from "next/image";
-import { useEffect, useState } from "react";
-import { CameraIcon } from "./_components/icons";
-import { Dialog } from "@headlessui/react";
+import { useEffect, useState, useCallback } from "react";
 import { jwtDecode } from "jwt-decode";
 import { toast } from "react-hot-toast";
+import Image from "next/image";
+import { Dialog } from "@headlessui/react";
 import { CiUser } from "react-icons/ci";
+import { CameraIcon } from "./_components/icons";
+import Loader from "@/components/Loader";
 
 const API_URL = process.env.NEXT_PUBLIC_SERVER_DOMAIN || "";
 
 type UserData = {
-  name: string;
-  firstName?: string;
-  lastName?: string;
-  email?: string;
-  mobile?: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  mobile: string;
   profilePhoto: string | null;
-  coverPhoto: string | null;
 };
 
-export default function Page() {
+export default function ProfilePage() {
   const [data, setData] = useState<UserData>({
-    name: "",
     firstName: "",
     lastName: "",
     email: "",
     mobile: "",
     profilePhoto: null,
-    coverPhoto:
-      "https://media.licdn.com/dms/image/v2/D4D16AQF0bPXbyhMSKg/profile-displaybackgroundimage-shrink_200_800/0/1664786802828?e=2147483647&v=beta&t=riaFhspZg5BsbexzfRryy4PvhwXT5TrD7N5JpY2ATwU",
   });
 
   const [adminToken, setAdminToken] = useState<string | null>(null);
   const [adminEmail, setAdminEmail] = useState<string | null>(null);
-  const [isOpen, setIsOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isProfileLoading, setIsProfileLoading] = useState(true);
 
-  // Load token & decode email on mount
+  // Load token and decode email
   useEffect(() => {
     const token = localStorage.getItem("adminToken");
-    console.log("Token from localStorage:", token);
     if (token) {
       try {
         setAdminToken(token);
         const decoded: any = jwtDecode(token);
-        console.log("Decoded token:", decoded);
-        if (decoded && decoded.email) setAdminEmail(decoded.email);
+        if (decoded?.email) setAdminEmail(decoded.email);
         else toast.error("Token missing email");
       } catch (error) {
         toast.error("Invalid token");
@@ -57,66 +52,57 @@ export default function Page() {
     }
   }, []);
 
-  // Fetch user profile when email and token available
-  useEffect(() => {
+  // Fetch profile
+  const fetchProfile = useCallback(async () => {
     if (!adminEmail || !adminToken) return;
 
-    async function fetchUserProfile() {
-      try {
-        const emailToEncode = adminEmail ?? "";
-        const res = await fetch(
-          `${API_URL}/admin?email=${encodeURIComponent(emailToEncode)}`,
-          {
-            headers: {
-              Authorization: `Bearer ${adminToken}`,
-              "Content-Type": "application/json",
-            },
+    setIsProfileLoading(true);
+    try {
+      const res = await fetch(
+        `${API_URL}/admin?email=${encodeURIComponent(adminEmail)}`,
+        {
+          headers: {
+            Authorization: `Bearer ${adminToken}`,
+            "Content-Type": "application/json",
           },
-        );
+        },
+      );
 
-        // console.log("Checking response data for admin role", res)
-
-        const json = await res.json();
-
-        if (res.ok && json.success && json.data) {
-          toast.success("Admin data fetched successfully!");
-          setData({
-            name:
-              (json.data.firstName || "") + " " + (json.data.lastName || "") ||
-              "Super Admin",
-            firstName: json.data.firstName || "",
-            lastName: json.data.lastName || "",
-            email: json.data.email || "",
-            mobile: json.data.mobile || "",
-            profilePhoto: json.data.profile || null,
-            coverPhoto: data.coverPhoto,
-          });
-        } else {
-          toast.error(json.message || "Failed to fetch admin data");
-        }
-      } catch (error) {
-        toast.error("Error fetching admin data");
-        console.error("Fetch error:", error);
+      const json = await res.json();
+      if (res.ok && json.success && json.data) {
+        setData({
+          firstName: json.data.firstName || "",
+          lastName: json.data.lastName || "",
+          email: json.data.email || "",
+          mobile: json.data.mobile || "",
+          profilePhoto: json.data.profile || null,
+        });
+      } else {
+        toast.error(json.message || "Failed to fetch profile");
       }
+    } catch (err) {
+      toast.error("Error fetching profile");
+      console.error(err);
+    } finally {
+      setIsProfileLoading(false);
     }
-
-    fetchUserProfile();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [adminEmail, adminToken]);
 
-  // Handle profile info update
-  const handleUpdate = async () => {
-    if (!adminToken) {
-      toast.error("No admin token found.");
-      return;
-    }
+  useEffect(() => {
+    fetchProfile();
+  }, [fetchProfile]);
 
+  // Update profile info
+  const handleUpdateInfo = async () => {
+    if (!adminToken) return;
+
+    setIsLoading(true);
     try {
-      const response = await fetch(`${API_URL}/updateAdmin`, {
+      const res = await fetch(`${API_URL}/updateAdmin`, {
         method: "PUT",
         headers: {
-          "Content-Type": "application/json",
           Authorization: `Bearer ${adminToken}`,
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           firstName: data.firstName,
@@ -126,239 +112,296 @@ export default function Page() {
         }),
       });
 
-      const json = await response.json();
-      console.log("Update response:", json);
-
-      if (response.ok && (json.success === true || json.data || json.updated)) {
-        toast.success("Admin profile updated successfully!");
-        setIsOpen(false);
-        setData((prev) => ({
-          ...prev,
-          name: `${data.firstName} ${data.lastName}`,
-        }));
+      const json = await res.json();
+      if (res.ok && json.success) {
+        toast.success("Profile updated successfully");
+        setIsEditModalOpen(false);
       } else {
-        toast.error(json.message || "Failed to update admin data");
+        toast.error(json.message || "Failed to update profile");
       }
-    } catch (error) {
-      toast.error("Error updating admin data");
-      console.error("Update error:", error);
+    } catch {
+      toast.error("Error updating profile");
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // Handle profile photo upload & update
-const handleProfilePhotoChange = async (
-  e: React.ChangeEvent<HTMLInputElement>,
-) => {
-  const file = e.target.files?.[0];
-  if (!file || !adminToken) return;
-
-  // Check file size before uploading (e.g., 5MB)
-  const MAX_SIZE_MB = 5;
-  if (file.size > MAX_SIZE_MB * 1024 * 1024) {
-    toast.error(`Image too large. Max ${MAX_SIZE_MB}MB allowed.`);
-    return;
-  }
-
-  try {
-    const formData = new FormData();
-    formData.append("profile", file);
-
-    const res = await fetch(`${API_URL}/updateAdmin`, {
-      method: "PUT",
-      headers: {
-        Authorization: `Bearer ${adminToken}`,
-      },
-      body: formData,
-    });
-
-    const json = await res.json();
-
-    if (res.status === 413) {
-      toast.error("Image too large to upload. Server rejected the request.");
+  // Upload profile photo - Separate endpoint
+  const handleImageUpload = async (file: File) => {
+    if (!adminToken || !file || !adminEmail) {
+      toast.error("Missing required data");
       return;
     }
 
-    if (res.ok && (json.success === true || json.data || json.updated)) {
-      toast.success("Profile photo updated");
+    // Validate file type
+    const validTypes = ["image/jpeg", "image/jpg", "image/png"];
+    if (!validTypes.includes(file.type)) {
+      toast.error("Only JPG/JPEG/PNG images are allowed");
+      return;
+    }
 
-      if (json.data?.profile) {
-        setData((prev) => ({ ...prev, profilePhoto: json.data.profile }));
+    // Validate file size
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Maximum file size is 5MB");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("profile", file);
+      formData.append("email", adminEmail);
+
+      const res = await fetch(`${API_URL}/uploadProfile`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${adminToken}`,
+        },
+        body: formData,
+      });
+
+      // First check if response is JSON
+      const contentType = res.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        const text = await res.text();
+        throw new Error(
+          `Server returned ${res.status}: ${text.substring(0, 100)}`,
+        );
       }
 
-      setIsOpen(false);
-    } else {
-      toast.error(json.message || "Failed to update profile photo");
+      const json = await res.json();
+
+      if (!res.ok) {
+        throw new Error(json.message || "Failed to update profile photo");
+      }
+
+      toast.success("Profile photo updated successfully");
+      setData((prev) => ({
+        ...prev,
+        profilePhoto: json.profileUrl || json.data?.profileUrl,
+      }));
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Error updating profile photo",
+      );
+    } finally {
+      setIsLoading(false);
     }
-  } catch (error: any) {
-    if (error.message.includes("413")) {
-      toast.error("Server rejected the upload — image too large.");
-    } else {
-      toast.error("Error updating profile photo");
-    }
-    console.error("Upload error:", error);
+  };
+  if (isProfileLoading) {
+    return (
+      <div>
+        <Loader />
+      </div>
+    );
   }
-};
-
-
-  // Fix cover photo fallback
-  // const coverPhotoUrl =
-  //   data.coverPhoto && data.coverPhoto !== ""
-  //     ? data.coverPhoto
-  //     : "https://via.placeholder.com/970x260?text=Cover+Photo";
 
   return (
-    <div className="mx-auto w-full max-w-[970px]">
-      <Breadcrumb pageName="Profile" />
-
-      <div className="overflow-hidden rounded-[10px] bg-white shadow-1 dark:bg-gray-900 dark:shadow-card">
-        {/* Cover Photo */}
-        <div className="relative z--20 h-[140px] md:h-[260px]">
-          <Image
-            src="/images/banner.png"
-            alt="Cover Photo"
-            width={400}
-            height={260}
-            className="h-full w-full rounded-xl object-fill p-2"
-          />
+    <div className="min-h-screen bg-gray-50 px-4 py-12 dark:bg-gray-900 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-4xl">
+        {/* Profile Header */}
+        <div className="mb-8 text-center">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            Profile Settings
+          </h1>
+          <p className="mt-2 text-gray-600 dark:text-gray-300">
+            Manage your account information and profile photo
+          </p>
         </div>
 
-        {/* Profile Section */}
-        <div className="px-4 pb-6 text-center">
-          <div className="relative mx-auto -mt-22 flex h-44 w-44 items-center justify-center rounded-full bg-white/20 p-2 backdrop-blur">
-            <div className="relative h-40 w-40 overflow-hidden rounded-full border-2 border-primary">
-              {data.profilePhoto ? (
-                <Image
-                  src={data.profilePhoto}
-                  width={160}
-                  height={160}
-                  className="h-full w-full rounded-full object-cover"
-                  alt="Profile"
-                  unoptimized
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center bg-gray-200 text-4xl text-gray-500 dark:bg-gray-700 dark:text-white">
-                  <CiUser />
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="mt-4">
-            <h3 className="mb-1 text-heading-6 font-bold text-dark dark:text-white">
-              {data.name || "Loading..."}
-            </h3>
-            <p className="font-medium dark:text-white">{data.email}</p>
-
-            <button
-              onClick={() => setIsOpen(true)}
-              className="mt-4 rounded bg-primary px-4 py-2 text-white hover:bg-opacity-90"
-            >
-              Edit Profile
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Modal */}
-      <Dialog
-        open={isOpen}
-        onClose={() => setIsOpen(false)}
-        className="fixed inset-0 z-50"
-      >
-        <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
-        <div className="flex h-screen items-center justify-center p-4">
-          <Dialog.Panel className="relative w-full max-w-md rounded bg-white p-6 shadow-lg dark:bg-gray-900">
-            <Dialog.Title className="text-center text-xl font-bold text-dark dark:text-white">
-              Edit Admin Info
-            </Dialog.Title>
-
-            {/* Profile Image Section */}
-            <div className="relative mt-4 flex justify-center">
-              <div className="relative h-32 w-32 overflow-hidden rounded-full border-2 border-primary">
+        {/* Profile Card */}
+        <div className="overflow-hidden rounded-xl bg-white shadow-lg dark:bg-gray-800">
+          <div className="relative h-40 bg-gradient-to-r from-blue-500 to-purple-600">
+            {/* Profile Photo */}
+            <div className="absolute -bottom-16 left-8 transform">
+              <div className="relative h-32 w-32 rounded-full border-4 border-white bg-white shadow-lg dark:border-gray-800 dark:bg-gray-700">
                 {data.profilePhoto ? (
                   <Image
                     src={data.profilePhoto}
                     alt="Profile"
-                    width={96}
-                    height={96}
-                    className="h-full w-full object-cover"
-                    unoptimized={true}
+                    width={128}
+                    height={128}
+                    className="h-full w-full rounded-full object-cover"
+                    unoptimized
                   />
                 ) : (
-                  <div className="flex h-full w-full items-center justify-center bg-gray-200 text-gray-500 dark:bg-gray-700 dark:text-gray-300">
-                    No Image
+                  <div className="flex h-full w-full items-center justify-center rounded-full bg-gray-300 text-5xl text-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                    <CiUser />
                   </div>
                 )}
-                <label
-                  htmlFor="modalProfileUpload"
-                  className="absolute bottom-4 right-2 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-primary text-white"
-                >
-                  <CameraIcon className="h-4 w-4" />
+                <label className="hover:bg-primary-dark absolute bottom-0 right-0 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-primary shadow-md transition">
+                  <CameraIcon className="h-5 w-5 text-white" />
                   <input
-                    id="modalProfileUpload"
-                    name="profilePhoto"
                     type="file"
-                    className="sr-only"
-                    accept="image/png, image/jpg, image/jpeg"
-                    onChange={handleProfilePhotoChange}
+                    accept="image/png,image/jpg,image/jpeg"
+                    className="hidden"
+                    onChange={(e) => {
+                      if (e.target.files?.[0]) {
+                        handleImageUpload(e.target.files[0]);
+                        e.target.value = "";
+                      }
+                    }}
+                    disabled={isLoading}
                   />
                 </label>
               </div>
             </div>
+          </div>
 
-            {/* Input Fields */}
-            <div className="mt-6 space-y-4">
-              <input
-                type="text"
-                placeholder="First Name"
-                className="w-full rounded border border-gray-300 bg-white p-2 text-black dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                value={data.firstName}
-                onChange={(e) =>
-                  setData((prev) => ({ ...prev, firstName: e.target.value }))
-                }
-              />
-              <input
-                type="text"
-                placeholder="Last Name"
-                className="w-full rounded border border-gray-300 bg-white p-2 text-black dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                value={data.lastName}
-                onChange={(e) =>
-                  setData((prev) => ({ ...prev, lastName: e.target.value }))
-                }
-              />
-              <input
-                type="email"
-                placeholder="Email"
-                className="w-full rounded border border-gray-300 bg-white p-2 text-black dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                value={data.email}
-                onChange={(e) =>
-                  setData((prev) => ({ ...prev, email: e.target.value }))
-                }
-              />
-              <input
-                type="text"
-                placeholder="Mobile"
-                className="w-full rounded border border-gray-300 bg-white p-2 text-black dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                value={data.mobile}
-                onChange={(e) =>
-                  setData((prev) => ({ ...prev, mobile: e.target.value }))
-                }
-              />
+          {/* Profile Info */}
+          <div className="mt-16 px-8 pb-8">
+            <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
+                  Personal Information
+                </h3>
+                <div className="mt-4 space-y-4">
+                  <div>
+                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                      First Name
+                    </p>
+                    <p className="mt-1 text-gray-900 dark:text-white">
+                      {data.firstName || "Not provided"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                      Last Name
+                    </p>
+                    <p className="mt-1 text-gray-900 dark:text-white">
+                      {data.lastName || "Not provided"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
+                  Contact Information
+                </h3>
+                <div className="mt-4 space-y-4">
+                  <div>
+                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                      Email
+                    </p>
+                    <p className="mt-1 text-gray-900 dark:text-white">
+                      {data.email}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                      Mobile
+                    </p>
+                    <p className="mt-1 text-gray-900 dark:text-white">
+                      {data.mobile || "Not provided"}
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            {/* Buttons */}
-            <div className="mt-6 flex justify-end gap-4">
+            <div className="mt-8 flex justify-end">
               <button
-                onClick={() => setIsOpen(false)}
-                className="rounded bg-gray-300 px-4 py-2 dark:bg-gray-700 dark:text-white"
+                onClick={() => setIsEditModalOpen(true)}
+                className="hover:bg-primary-dark rounded-lg bg-primary px-6 py-2 font-medium text-white transition focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-70 dark:focus:ring-offset-gray-800"
+                disabled={isLoading}
               >
-                Cancel
+                Edit Profile
               </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Edit Info Modal */}
+      <Dialog
+        open={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        className="relative z-50"
+      >
+        <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          <Dialog.Panel className="w-full max-w-md rounded-2xl bg-white p-6 dark:bg-gray-800">
+            <Dialog.Title className="text-2xl font-bold text-gray-900 dark:text-white">
+              Edit Profile
+            </Dialog.Title>
+            <Dialog.Description className="mt-2 text-gray-600 dark:text-gray-300">
+              Update your personal information
+            </Dialog.Description>
+
+            <div className="mt-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  First Name
+                </label>
+                <input
+                  type="text"
+                  value={data.firstName}
+                  onChange={(e) =>
+                    setData((prev) => ({ ...prev, firstName: e.target.value }))
+                  }
+                  className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-primary dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Last Name
+                </label>
+                <input
+                  type="text"
+                  value={data.lastName}
+                  onChange={(e) =>
+                    setData((prev) => ({ ...prev, lastName: e.target.value }))
+                  }
+                  className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-primary dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  value={data.email}
+                  onChange={(e) =>
+                    setData((prev) => ({ ...prev, email: e.target.value }))
+                  }
+                  className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-primary dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Mobile
+                </label>
+                <input
+                  type="tel"
+                  value={data.mobile}
+                  onChange={(e) =>
+                    setData((prev) => ({ ...prev, mobile: e.target.value }))
+                  }
+                  className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-primary dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                />
+              </div>
+            </div>
+ 
+            <div className="mt-8 flex justify-end">
               <button
-                onClick={handleUpdate}
-                className="rounded bg-primary px-4 py-2 text-white"
+                onClick={handleUpdateInfo}
+                className="hover:bg-primary-dark rounded-lg bg-primary px-4 py-2 font-medium text-white transition focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-70 dark:focus:ring-offset-gray-800"
+                disabled={isLoading}
               >
-                Save
+                {isLoading ? (
+                  <span className="flex items-center justify-center">
+                    Saving...
+                  </span>
+                ) : (
+                  "Save Changes"
+                )}
               </button>
             </div>
           </Dialog.Panel>

@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Providers } from "./providers";
 import LayoutWrapper from "./LayoutWrapper";
 import { Toaster } from "react-hot-toast";
+import { AuthProvider } from "@/context/AuthContext";
+
 
 export const metadata: Metadata = {
   title: {
@@ -20,8 +22,12 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body>
         <Providers>
-          <LayoutWrapper>{children}</LayoutWrapper>
-          <Toaster position="top-center" toastOptions={{ duration: 3000 }} />
+          <AuthProvider>
+            {" "}
+            {/* Wrap with AuthProvider */}
+            <LayoutWrapper>{children}</LayoutWrapper>
+            <Toaster position="top-center" toastOptions={{ duration: 3000 }} />
+          </AuthProvider>
         </Providers>
       </body>
     </html>
