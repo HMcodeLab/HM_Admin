@@ -37,7 +37,7 @@ type Course = {
 
 type PurchasedCourse = {
   course: Course;
-  completed_lessons: string[]; // Array of lesson IDs
+  completed_lessons: string[];
 };
 
 type StudentDetail = {
@@ -63,16 +63,15 @@ type StudentDetail = {
   role?: string;
 };
 
-interface PageProps {
-  params: { slug: string };
-  searchParams?: { [key: string]: string | string[] | undefined };
-}
-
 // Constants
 const PROFILE_PLACEHOLDER = "/assets/person.png";
 const ITEMS_PER_PAGE_OPTIONS = [10, 20, 30] as const;
 
-export default function StudentDetailsPage({ params }: PageProps) {
+export default function StudentDetailsPage({
+  params,
+}: {
+  params: { slug: string };
+}) {
   const { slug } = params;
   const [studentDetail, setStudentDetail] = useState<StudentDetail | null>(
     null,

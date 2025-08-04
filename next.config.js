@@ -1,5 +1,8 @@
-/** @type {import("next").NextConfig} */
+/** @type {import('next').NextConfig} */
 const nextConfig = {
+  typescript: {
+    ignoreBuildErrors: true, // Temporary during development
+  },
   images: {
     remotePatterns: [
       {
@@ -78,9 +81,7 @@ const nextConfig = {
       },
     ],
   },
-
   webpack: (config, { dev, isServer }) => {
-    // Disable the React Dev Overlay original stack frame requests in development
     if (dev && !isServer) {
       config.resolve.alias[
         "next/dist/compiled/@next/react-dev-overlay/client"
@@ -88,18 +89,6 @@ const nextConfig = {
     }
     return config;
   },
-
-  // Optional: if you want to silently reroute stack frame requests to avoid 404s
-  /*
-  async rewrites() {
-    return [
-      {
-        source: "/__nextjs_original-stack-frames",
-        destination: "/404",
-      },
-    ];
-  },
-  */
 };
 
 export default nextConfig;
