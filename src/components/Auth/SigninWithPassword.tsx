@@ -4,6 +4,7 @@ import { EmailIcon, PasswordIcon } from "@/assets/icons";
 import React, { useState } from "react";
 import InputGroup from "../FormElements/InputGroup";
 import { useRouter } from "next/navigation";
+import Cookies from "js-cookie";
 
 export default function SigninWithPassword() {
   const router = useRouter();
@@ -54,10 +55,13 @@ export default function SigninWithPassword() {
 
       const result = await response.json();
 
-      // ✅ Save token
+      // ✅ Save token in LocalStorage
       localStorage.setItem("adminToken", result.token);
 
-      // ✅ Save expiry time from JWT token
+      // ✅ Save token in Cookies for middleware
+      Cookies.set("adminToken", result.token, { expires: 1 }); // 1 day expiry
+
+      // ✅ Save expiry in LocalStorage (optional)
       try {
         const payload = JSON.parse(atob(result.token.split(".")[1]));
         if (payload.exp) {
@@ -67,12 +71,21 @@ export default function SigninWithPassword() {
         console.error("Failed to decode token:", err);
       }
 
+      // ✅ Redirect to dashboard
       router.push("/");
     } catch (err: any) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
+  };
+
+  // 🔴 Logout function (can be used in Navbar/Sidebar)
+  const handleLogout = () => {
+    localStorage.removeItem("adminToken");
+    localStorage.removeItem("tokenExpiry");
+    Cookies.remove("adminToken");
+    router.push("/auth/sign-in");
   };
 
   return (
@@ -141,6 +154,15 @@ export default function SigninWithPassword() {
           {error}
         </p>
       )}
+
+      {/* 🔴 Logout button (optional placement) */}
+      <button
+        type="button"
+        onClick={handleLogout}
+        className="mt-4 w-full rounded-xl bg-red-500 px-6 py-3 font-semibold text-white transition duration-300 hover:bg-red-600"
+      >
+        Logout
+      </button>
     </form>
   );
 }

@@ -1,7 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  reactStrictMode: false,
   typescript: {
-    ignoreBuildErrors: true, // Temporary during development
+    ignoreBuildErrors: true,
   },
   images: {
     remotePatterns: [
@@ -81,7 +82,7 @@ const nextConfig = {
       },
     ],
   },
-  webpack: (config, { dev, isServer }) => {
+  webpack(config, { dev, isServer }) {
     if (dev && !isServer) {
       config.resolve.alias[
         "next/dist/compiled/@next/react-dev-overlay/client"
@@ -91,4 +92,4 @@ const nextConfig = {
   },
 };
 
-export default nextConfig;
+module.exports = nextConfig;

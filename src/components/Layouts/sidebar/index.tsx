@@ -4,7 +4,7 @@ import { Logo } from "@/components/logo";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { NAV_DATA } from "./data";
 import { ArrowLeftIcon, ChevronUp } from "./icons";
 import { MenuItem } from "./menu-item";
@@ -15,40 +15,43 @@ interface SidebarProps {
   userRole: string;
 }
 
+/**
+ * Role-based filtering function
+ */
+function filterNavByRole(navData: NavSection[], role: string): NavSection[] {
+  if (role === "superAdmin") {
+    return navData;
+  }
+
+  return navData
+    .map((section) => ({
+      ...section,
+      items: section.items
+        .filter((item) => item.roles?.includes(role))
+        .map((item) => ({
+          ...item,
+          items: item.items
+            ? item.items.filter((subItem) =>
+                subItem.roles
+                  ? subItem.roles.includes(role)
+                  : item.roles?.includes(role),
+              )
+            : [],
+        })),
+    }))
+    .filter((section) => section.items.length > 0);
+}
+
 export function Sidebar({ userRole }: SidebarProps) {
   const pathname = usePathname();
   const { setIsOpen, isOpen, isMobile, toggleSidebar } = useSidebarContext();
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
 
-  // Role-based filtering
-  const filterNavByRole = (
-    navData: NavSection[],
-    role: string,
-  ): NavSection[] => {
-    if (role === "superAdmin") {
-      return navData;
-    }
-
-    return navData
-      .map((section) => ({
-        ...section,
-        items: section.items
-          .filter((item) => item.roles?.includes(role))
-          .map((item) => ({
-            ...item,
-            items: item.items
-              ? item.items.filter((subItem) =>
-                  subItem.roles
-                    ? subItem.roles.includes(role)
-                    : item.roles?.includes(role),
-                )
-              : [],
-          })),
-      }))
-      .filter((section) => section.items.length > 0);
-  };
-
-  const filteredNav = filterNavByRole(NAV_DATA, userRole);
+  // Memoize filtered nav to avoid re-render loop
+  const filteredNav = useMemo(
+    () => filterNavByRole(NAV_DATA, userRole),
+    [userRole],
+  );
 
   const toggleExpanded = (title: string) => {
     setExpandedItems((prev) =>
@@ -68,7 +71,11 @@ export function Sidebar({ userRole }: SidebarProps) {
       });
     });
 
-    setExpandedItems((prev) => [...new Set([...prev, ...newExpandedItems])]);
+    // Update only if expanded items actually change
+    setExpandedItems((prev) => {
+      const updated = [...new Set([...prev, ...newExpandedItems])];
+      return JSON.stringify(prev) === JSON.stringify(updated) ? prev : updated;
+    });
   }, [pathname, filteredNav]);
 
   return (
