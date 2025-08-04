@@ -84,8 +84,8 @@ export default function LayoutWrapper({
         <div className="flex h-screen overflow-hidden">
           <div className="w-74 flex-shrink-0 bg-white dark:bg-[#0c1a2b]">
             {/* Pass empty string if userRole is null */}
-            {/* <Sidebar userRole={userRole ?? ""} /> */}
-            <Sidebar userRole="superAdmin" />
+            <Sidebar userRole={userRole ?? ""} />
+            {/* <Sidebar userRole="superAdmin" /> */}
           </div>
           <div className="flex flex-1 flex-col overflow-hidden bg-gray-2 dark:bg-[#020d1a]">
             <Header />
