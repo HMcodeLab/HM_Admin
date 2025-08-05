@@ -17,6 +17,7 @@ type UserData = {
   email: string;
   mobile: string;
   profilePhoto: string | null;
+  role?: string; // Optional field for role
 };
 
 export default function ProfilePage() {
@@ -26,6 +27,7 @@ export default function ProfilePage() {
     email: "",
     mobile: "",
     profilePhoto: null,
+    role: "", // Initialize role as empty string
   });
 
   const [adminToken, setAdminToken] = useState<string | null>(null);
@@ -300,6 +302,17 @@ export default function ProfilePage() {
                   </div>
                 </div>
               </div>
+         
+               
+                <div>
+                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    Role
+                  </p>
+                  <p className="mt-1 text-gray-900 dark:text-white">
+                    {data?.role || "Not provided"}
+                  </p>
+         
+              </div>
             </div>
 
             <div className="mt-8 flex justify-end">
@@ -388,7 +401,7 @@ export default function ProfilePage() {
                 />
               </div>
             </div>
- 
+
             <div className="mt-8 flex justify-end">
               <button
                 onClick={handleUpdateInfo}

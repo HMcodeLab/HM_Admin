@@ -1,10 +1,10 @@
-// contexts/AuthContext.tsx
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 import { jwtDecode } from "jwt-decode";
+import { toast } from "react-hot-toast";
 
 type User = {
   name: string;
@@ -25,6 +25,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [hasLoggedOut, setHasLoggedOut] = useState(false); // 🔹 Prevent multiple logout calls
 
   useEffect(() => {
     const token = Cookies.get("adminToken");
@@ -44,7 +45,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         `${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/admin?email=${encodeURIComponent(email)}`,
         {
           headers: { Authorization: `Bearer ${token}` },
-        },
+        }
       );
 
       const data = await res.json();
@@ -54,6 +55,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           email: data.data.email || "",
           profilePhoto: data.data.profile || "",
         });
+      } else {
+        logout(); // token invalid
       }
     } catch (error) {
       console.error("Failed to fetch user", error);
@@ -74,16 +77,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = () => {
+    if (hasLoggedOut) return; // 🔹 Avoid multiple toasts
+    setHasLoggedOut(true);
+    toast.error("Session expired or invalid token");
     localStorage.removeItem("adminToken");
     Cookies.remove("adminToken");
     setUser(null);
-    router.push("/auth/sign-in");
-    router.refresh();
+    router.replace("/auth/sign-in"); // 🔹 replace to avoid back navigation
   };
 
   return (
     <AuthContext.Provider value={{ user, loading, login, logout }}>
-      {children}
+      {loading ? (
+        <div className="flex h-screen items-center justify-center">
+          <span className="loader" /> {/* 🔹 Show loader until auth check finishes */}
+        </div>
+      ) : (
+        children
+      )}
     </AuthContext.Provider>
   );
 }
