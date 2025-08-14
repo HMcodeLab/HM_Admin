@@ -27,7 +27,7 @@ const InputBox: React.FC<Props> = ({
       name={name}
       type={type}
       placeholder={placeholder}
-      value={value}
+      value={value ?? ""}
       onChange={onChange}
       className="rounded-md border p-2"
     />
