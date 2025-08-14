@@ -1,40 +1,50 @@
 "use client";
 
 import React, { useState, ChangeEvent } from "react";
-
-import { CourseInfoProps } from "@/types";
+import { CourseType } from "@/types";
 import InputBox from "./InputBox";
+
+// Static categories moved outside to prevent reinitialization
+const INITIAL_CATEGORIES: Record<string, string[]> = {
+  "Web Development": ["Front-End Development", "Back-End Development"],
+  "Mobile App Development": ["Cross-Platform Development"],
+  "Cloud Computing": ["AWS Architecture"],
+  Cybersecurity: ["Ethical Hacking"],
+  "Data Science": ["Statistical Analysis", "Deep Learning"],
+  "Artificial Intelligence": ["Python Libraries"],
+  "Digital Marketing": ["SEO & Web Analytics"],
+  "Financial Marketing": ["Finance Sector Marketing"],
+  "Career Development": ["Job Application Skills", "Networking"],
+  "Personal Development": ["Mindset", "Personal Branding"],
+};
+
+interface CourseInfoProps {
+  courseDetails: CourseType;
+  setCourseDetails: React.Dispatch<React.SetStateAction<CourseType>>;
+}
 
 const CourseInfo: React.FC<CourseInfoProps> = ({
   courseDetails,
   setCourseDetails,
 }) => {
-  const [categories, setCategories] = useState<Record<string, string[]>>({
-    "Web Development": ["Front-End Development", "Back-End Development"],
-    "Mobile App Development": ["Cross-Platform Development"],
-    "Cloud Computing": ["AWS Architecture"],
-    Cybersecurity: ["Ethical Hacking"],
-    "Data Science": ["Statistical Analysis", "Deep Learning"],
-    "Artificial Intelligence": ["Python Libraries"],
-    "Digital Marketing": ["SEO & Web Analytics"],
-    "Financial Marketing": ["Finance Sector Marketing"],
-    "Career Development": ["Job Application Skills", "Networking"],
-    "Personal Development": ["Mindset", "Personal Branding"],
-  });
-
+  const [categories, setCategories] =
+    useState<Record<string, string[]>>(INITIAL_CATEGORIES);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [subcategories, setSubcategories] = useState<string[]>([]);
   const [newCategory, setNewCategory] = useState<string>("");
   const [newSubcategory, setNewSubcategory] = useState<string>("");
 
+  // Generic input change handler
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setCourseDetails((prev) => ({ ...prev, [name]: value }));
+    const { name, value, type } = e.target;
+    const valueToSet = type === "number" ? Number(value) : value;
+    setCourseDetails((prev) => ({ ...prev, [name]: valueToSet }));
   };
 
   const formatDate = (dateString: string) => {
     if (!dateString) return "";
     const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "";
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const day = String(date.getDate()).padStart(2, "0");

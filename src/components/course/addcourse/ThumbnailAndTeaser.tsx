@@ -72,7 +72,7 @@ const ThumbnailAndTeaser: React.FC<ThumbnailAndTeaserProps> = ({
           </p>
           {courseDetails.featured_image && (
             <Image
-              src={courseDetails.featured_image}
+              src={courseDetails?.featured_image}
               alt="Thumbnail"
               className="h-40 w-full rounded-lg object-cover"
               width={200}
@@ -83,14 +83,14 @@ const ThumbnailAndTeaser: React.FC<ThumbnailAndTeaserProps> = ({
             <input
               type="url"
               name="featured_image"
-              value={courseDetails.featured_image}
+              value={courseDetails?.featured_image}
               onChange={handleInputChange}
               placeholder="https://example.com/photo.jpg"
               className="flex-grow rounded-md px-3 py-2 text-black shadow outline-none dark:bg-gray-700 dark:text-white"
             />
             <ImCross
               className={`cursor-pointer text-xl text-red-500 ${
-                courseDetails.featured_image ? "visible" : "invisible"
+                courseDetails?.featured_image ? "visible" : "invisible"
               }`}
               onClick={() =>
                 setCourseDetails({ ...courseDetails, featured_image: "" })
@@ -115,7 +115,7 @@ const ThumbnailAndTeaser: React.FC<ThumbnailAndTeaserProps> = ({
           </p>
           {courseDetails.bannerImg && (
             <Image
-              src={courseDetails.bannerImg}
+              src={courseDetails?.bannerImg}
               alt="Banner"
               className="h-40 w-full rounded-lg object-cover"
               width={200}

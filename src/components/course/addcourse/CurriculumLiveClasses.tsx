@@ -6,7 +6,7 @@ import { RiUploadCloud2Line } from "react-icons/ri";
 import { useTheme } from "next-themes";
 import VideoCourseModal from "@/utils/VideoCourseModal";
 import PdfCoursesModal from "@/utils/PdfCoursesModal";
-import { CourseType } from "@/types";
+import { CourseType, MediaItem } from "@/types";
 
 interface LiveClass {
   startDate: string;
@@ -41,11 +41,12 @@ interface Chapter {
   project: Project[];
 }
 
-interface CurriculumLiveClassesProps {
+export interface CurriculumLiveClassesProps {
   courseDetails: CourseType;
   setCourseDetails: React.Dispatch<React.SetStateAction<CourseType>>;
-  uploadedMedia?: any;
-  needToUpdate?: boolean;
+  uploadedMedia?: MediaItem[]; // optional array of media items
+  setUploadedMedia?: React.Dispatch<React.SetStateAction<MediaItem[]>>; // optional setter
+  needToUpdate?: boolean; // corrected spelling
 }
 
 const CurriculumLiveClasses: React.FC<CurriculumLiveClassesProps> = ({
@@ -566,7 +567,7 @@ const CurriculumLiveClasses: React.FC<CurriculumLiveClassesProps> = ({
           courseDetails={courseDetails}
           setCourseDetails={setCourseDetails}
           type={selectedModal}
-          uploadedMedia={uploadedMedia}
+          uploadedMedia={uploadedMedia || []} // ✅ default to empty array
           setSelectedMediaFromModal={setSelectedMediaFromModal}
         />
       )}
@@ -578,7 +579,7 @@ const CurriculumLiveClasses: React.FC<CurriculumLiveClassesProps> = ({
           courseDetails={courseDetails}
           setCourseDetails={setCourseDetails}
           type={selectedModal}
-          uploadedMedia={uploadedMedia}
+          uploadedMedia={uploadedMedia || []} // ✅ default to empty array
           setSelectedMediaFromModal={setSelectedMediaFromModal}
         />
       )}
@@ -748,7 +749,7 @@ const CurriculumLiveClasses: React.FC<CurriculumLiveClassesProps> = ({
                             </label>
                             <input
                               type="datetime-local"
-                              value={formatDate(lesson.liveClass.startDate)}
+                              value={formatDate(lesson?.liveClass?.startDate)}
                               onChange={(e) =>
                                 handleInputChange(e, {
                                   chapterIndex,

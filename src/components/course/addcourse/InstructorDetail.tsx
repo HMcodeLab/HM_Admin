@@ -20,17 +20,16 @@ const InstructorDetail: React.FC<Props> = ({
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log("Input changed:", e.target.name, e.target.value);
-    window.alert(`Input changed: ${e.target.name}, ${e.target.value}`);
-    setIsModalOpen(false);
+    setselectedinstructorFromModal(e.target.value);
   };
 
+  // ✅ Fixed useEffect to avoid infinite loop
   useEffect(() => {
-    setCourseDetails({
-      ...courseDetails,
+    setCourseDetails((prevCourseDetails: any) => ({
+      ...prevCourseDetails,
       instructor: selectedinstructorFromModal,
-    });
-  }, [selectedinstructorFromModal, courseDetails, setCourseDetails]);
+    }));
+  }, [selectedinstructorFromModal, setCourseDetails]);
 
   const openModal = () => setIsModalOpen(true);
 
@@ -42,7 +41,6 @@ const InstructorDetail: React.FC<Props> = ({
           setIsModalOpen={setIsModalOpen}
           InstructorDetails={InstructorDetails}
           setselectedinstructorFromModal={setselectedinstructorFromModal}
-          // type={selectedModal}
         />
       )}
 

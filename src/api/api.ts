@@ -1,6 +1,7 @@
 // src/api/api.ts
 
 import axios from "axios";
+import { useState } from "react";
 import toast from "react-hot-toast";
 
 const API_URL = process.env.NEXT_PUBLIC_SERVER_DOMAIN;
@@ -21,7 +22,7 @@ const getAuthHeaders = (adminToken: string) => ({
 //     console.log("🔐 Auth Headers:", headers);
 
 //     const response = await axios.get(
-//       `${API_URL}/verifyadminuser/dashboard`, 
+//       `${API_URL}/verifyadminuser/dashboard`,
 //       headers,
 //     );
 
@@ -78,7 +79,6 @@ export const fetchUniversityCount = async (adminToken: string) => {
     return [];
   }
 };
-
 // 🔹 Fetch Payments
 export const fetchPayments = async (adminToken: string) => {
   try {
@@ -93,3 +93,20 @@ export const fetchPayments = async (adminToken: string) => {
     return [];
   }
 };
+
+// 🔹 Fetch Course by Admin Email
+export const fetchCourseID = async (adminToken: string, adminEmail: string) => {
+  try {
+    const response = await axios.get(
+      `${API_URL}/admin?email=${encodeURIComponent(adminEmail)}`,
+      getAuthHeaders(adminToken),
+    );
+    // console.log("🔍 Fetching course ID for admin email:", response);
+    return response?.data|| [];
+  } catch (error: any) {
+    console.error("❌ Error fetching id:", error.message || error);
+    toast.error("Failed to fetch id");
+    return [];
+  }
+};
+

@@ -373,13 +373,13 @@ export interface AllInstructorModelProps {
 
 export interface LessonType {
   lesson_name: string;
+  duration: string;
   video: string;
   notes: string;
   notesName: string;
   assignment: string;
   assignmentName: string;
   transcript: string;
-  duration: string;
   isLiveClass: boolean;
   liveClass: {
     startDate: string;
@@ -400,7 +400,7 @@ export interface ProjectType {
 export interface ChapterType {
   chapter_name: string;
   lessons: LessonType[];
-  project: ProjectType[];
+  project: any[];
 }
 
 export interface CourseType {
@@ -488,6 +488,8 @@ export interface Assessment {
   isProtected: boolean;
   questions: number;
 }
+
+
 
 // Props for UpdateAssessmentModal component
 export interface UpdateAssessmentModalProps {

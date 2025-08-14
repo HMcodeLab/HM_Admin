@@ -5,6 +5,7 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
+    domains: ["indiacsr.in","drdy957pjga3n.cloudfront.net"],
     remotePatterns: [
       {
         protocol: "https",
@@ -77,6 +78,12 @@ const nextConfig = {
       {
         protocol: "https",
         hostname: "media.istockphoto.com",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "indiacsr.in",
         port: "",
         pathname: "/**",
       },

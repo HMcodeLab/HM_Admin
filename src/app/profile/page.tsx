@@ -13,7 +13,7 @@ const API_URL = process.env.NEXT_PUBLIC_SERVER_DOMAIN || "";
 
 type UserData = {
   firstName: string;
-  lastName: string;
+  lastName: string; 
   email: string;
   mobile: string;
   profilePhoto: string | null;
@@ -27,7 +27,7 @@ export default function ProfilePage() {
     email: "",
     mobile: "",
     profilePhoto: null,
-    role: "", // Initialize role as empty string
+    role: "",
   });
 
   const [adminToken, setAdminToken] = useState<string | null>(null);
@@ -71,6 +71,7 @@ export default function ProfilePage() {
       );
 
       const json = await res.json();
+      console.log("Profile fetch response:", json.data._id);
       if (res.ok && json.success && json.data) {
         setData({
           firstName: json.data.firstName || "",
