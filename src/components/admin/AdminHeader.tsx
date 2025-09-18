@@ -130,14 +130,14 @@ export function AdminHeader() {
       />
 
       {/* Total Earning */}
-      <OverviewCard
+      {/* <OverviewCard
         label="Total Earning"
         data={{
           value: `₹${totalEarning.toLocaleString("en-IN")}`,
           growthRate: 0,
         }}
         Icon={IndianRupee}
-      />
+      /> */}
     </div>
   );
 }

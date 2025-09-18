@@ -55,7 +55,8 @@ type FormDataType = {
   job_url: string;
 };
 
-const DEFAULT_LOGO = "data:image/png;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBwcICAgHCAgIBwgHCA0HCAgIDQ8IDQgNFREWFhURExMYHSggJBslGxMTITEhMSkrLjouFx8zRDM4QygvOi0BCgoKBQUFDgUFDisZExkrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrK//AABEIAOEA4QMBIgACEQEDEQH/xAAZAAEBAQEBAQAAAAAAAAAAAAAAAQQDAgf/xAA1EAEAAgACBAsGBwEAAAAAAAAAAQIDEQQTITESFDJBUlNicpGSoSJRccLR8DM0QmGxweEk/8QAFAEBAAAAAAAAAAAAAAAAAAAAAP/EABQRAQAAAAAAAAAAAAAAAAAAAAD/2gAMAwEAAhEDEQA/APq6gAEKAAAAACgAAAAAAAAIAAqAIqAAAEgCCgAKAAACgigAAAAAAAAAAAAAAAigIACCoAACgAKigAAAAAAAAAAAAAAAAAAAAIqAIoBkIoBAAoAAAAAAAAAAAAAAAAAAAAAAIBIqAAAKigAAAAAAAAAAAAAAAAAAAAAAAAIoCCgAAAAAAAAAAAzXicTFms7onKsTtiNmfivFo7PlBoGfi0dnynFo7PlBoGfi0dnynFo7PlBoGfi0dnynFo7PlBoGfi0dnyvM11Voyzzyz2RkDUAAAAAAAAAAIoAAAAAAAAAAM9fx7d75XnHtNrzWc+DXKODzTOWec+K1n/onvfK6YmFFp4UTlPP+4OWBaa2isbp2ZNTlh4PBnhTOcxuy3Q6gPFMSl85rOcRPiz42NrPZr+Hzz1n+ffx81tNZzjZMA2s2k8qO7/bth4kXjZvjfHucdK5Ve7/AGDTO+QnfIAAAAAAAAAAAAAAAAAAAADLX8xPe+VovetKza05RHqz1/Mz3vleNItM4lomdlMorHu2R9QXX3m/D3RuinNEfUxsacT2IzrT9Xvv+3w+/jyzMwUTMzB7raazExsl00vl17s/y4w7aZy692f5BqnfISAAAAAAAAACKAAAAAAAAAADJaeBj2tMTlnns5/ZepxcCZmZw5mZ3zMRt9Xe1K25VYn4vOpwuhHqDjrdH6qfCDW6P1U+EO2pwuhHqanC6EeoOOt0fqp8INbo/VT4Q7anC6EepqcLoR6g5a3R+rnwhzxr620cHLbuDty2zLTqcLoR6rXDpWc61iJ9+8HuQAAAAAAAAAAABIUAAAAAAAAAAAAAAAAAAAAAAAAAAE2goIqEAoAAAAAAAAAAAAAAAAAAAAAAACSryCiAKIAsKigAAAAAAAAAAAAAAAAAAAAAgAgAqKCAAKigogCgAAAAAAAAAAAAAAAAgAgAAAAAAAAAqAKqEAogCgAAAAAAAAACACKgAAAICiACgAAAoAIoAACgAAAAAJKgJCgCAAIAHOAAgAAA/9k=";
+const DEFAULT_LOGO =
+  "data:image/png;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBwcICAgHCAgIBwgHCA0HCAgIDQ8IDQgNFREWFhURExMYHSggJBslGxMTITEhMSkrLjouFx8zRDM4QygvOi0BCgoKBQUFDgUFDisZExkrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrK//AABEIAOEA4QMBIgACEQEDEQH/xAAZAAEBAQEBAQAAAAAAAAAAAAAAAQQDAgf/xAA1EAEAAgACBAsGBwEAAAAAAAAAAQIDEQQTITESFDJBUlNicpGSoSJRccLR8DM0QmGxweEk/8QAFAEBAAAAAAAAAAAAAAAAAAAAAP/EABQRAQAAAAAAAAAAAAAAAAAAAAD/2gAMAwEAAhEDEQA/APq6gAEKAAAAACgAAAAAAAAIAAqAIqAAAEgCCgAKAAACgigAAAAAAAAAAAAAAAigIACCoAACgAKigAAAAAAAAAAAAAAAAAAAAIqAIoBkIoBAAoAAAAAAAAAAAAAAAAAAAAAAIBIqAAAKigAAAAAAAAAAAAAAAAAAAAAAAAIoCCgAAAAAAAAAAAzXicTFms7onKsTtiNmfivFo7PlBoGfi0dnynFo7PlBoGfi0dnynFo7PlBoGfi0dnynFo7PlBoGfi0dnyvM11Voyzzyz2RkDUAAAAAAAAAAIoAAAAAAAAAAM9fx7d75XnHtNrzWc+DXKODzTOWec+K1n/onvfK6YmFFp4UTlPP+4OWBaa2isbp2ZNTlh4PBnhTOcxuy3Q6gPFMSl85rOcRPiz42NrPZr+Hzz1n+ffx81tNZzjZMA2s2k8qO7/bth4kXjZvjfHucdK5Ve7/AGDTO+QnfIAAAAAAAAAAAAAAAAAAAADLX8xPe+VovetKza05RHqz1/Mz3vleNItM4lomdlMorHu2R9QXX3m/D3RuinNEfUxsacT2IzrT9Xvv+3w+/jyzMwUTMzB7raazExsl00vl17s/y4w7aZy692f5BqnfISAAAAAAAAACKAAAAAAAAAADJaeBj2tMTlnns5/ZepxcCZmZw5mZ3zMRt9Xe1K25VYn4vOpwuhHqDjrdH6qfCDW6P1U+EO2pwuhHqanC6EeoOOt0fqp8INbo/VT4Q7anC6EepqcLoR6g5a3R+rnwhzxr620cHLbuDty2zLTqcLoR6rXDpWc61iJ9+8HuQAAAAAAAAAAABIUAAAAAAAAAAAAAAAAAAAAAAAAAAE2goIqEAoAAAAAAAAAAAAAAAAAAAAAAACSryCiAKIAsKigAAAAAAAAAAAAAAAAAAAAAgAgAqKCAAKigogCgAAAAAAAAAAAAAAAAgAgAAAAAAAAAqAKqEAogCgAAAAAAAAACACKgAAAICiACgAAAoAIoAACgAAAAAJKgJCgCAAIAHOAAgAAA/9k=";
 
 const initialFormData: FormDataType = {
   publishedBy: "",
@@ -287,12 +288,7 @@ const AddHMJobs: React.FC = () => {
     }
 
     try {
-      // Split educational qualification by newlines to create array
-      const eduQualificationArray = formData.educational_qualification
-        .split('\n')
-        .filter(item => item.trim() !== '');
-
-      // Create the job data object
+      // Properly define jobData object
       const jobData = {
         publishedBy: formData.publishedBy,
         position: formData.position,
@@ -304,15 +300,21 @@ const AddHMJobs: React.FC = () => {
         location: addedLocations[0],
         work_experience: {
           isFresher: formData.work_experience.isFresher,
-          from: formData.work_experience.isFresher ? 0 : Number(formData.work_experience.from),
-          to: formData.work_experience.isFresher ? 0 : Number(formData.work_experience.to),
+          from: formData.work_experience.isFresher
+            ? 0
+            : Number(formData.work_experience.from),
+          to: formData.work_experience.isFresher
+            ? 0
+            : Number(formData.work_experience.to),
         },
         annual_salary_range: {
           from: Number(formData.annual_salary_range.from),
           to: Number(formData.annual_salary_range.to),
         },
         company_industry: formData.company_industry,
-        educational_qualification: eduQualificationArray,
+        educational_qualification: formData.educational_qualification
+          .split("\n")
+          .filter((item) => item.trim() !== ""),
         interview_mode: formData.interview_mode,
         job_description: jd,
         about_company: formData.about_company,
@@ -320,16 +322,25 @@ const AddHMJobs: React.FC = () => {
         company_address: formData.company_address,
         logoUrl: formData.logoUrl || DEFAULT_LOGO,
         publishStatus: formData.publishStatus,
-        publishDate: new Date(formData.publishDate),
-        lastDate: new Date(formData.lastDate),
+        publishDate: new Date(formData.publishDate).toISOString(),
+        lastDate: new Date(formData.lastDate).toISOString(),
         job_url: formData.job_url,
+        applicants: [],
       };
 
+      // Debug log to verify the data
+      console.log("Job Data hdhaahahhahahahahaha:", jobData);
+
       const formDataToSend = new FormData();
-      formDataToSend.append("job", JSON.stringify(jobData));
+      formDataToSend.append("job", JSON.stringify(jobData)); // Explicitly stringify
 
       if (formData.applicantsFile) {
         formDataToSend.append("applicantsFile", formData.applicantsFile);
+      }
+
+      // Debug FormData contents
+      for (let [key, value] of formDataToSend.entries()) {
+        console.log(key, value);
       }
 
       const response = await axios.post(
@@ -338,23 +349,25 @@ const AddHMJobs: React.FC = () => {
         {
           headers: {
             Authorization: `Bearer ${adminToken}`,
-            "Content-Type": "multipart/form-data",
+            // Don't set Content-Type - browser will set it automatically with boundary
           },
-        }
+        },
       );
 
       if (response.data?.success) {
         toast.success("Job posted successfully!");
         resetForm();
       } else {
-        toast.error(response.data?.message || "Job posting failed");
+        toast.error(response.data?.message || "Failed to post job");
       }
     } catch (error: any) {
-      console.error("Submission Error:", error);
-      toast.error(
-        error.response?.data?.message ||
-        "Failed to post job. Please check all required fields."
-      );
+      console.error("Full Error:", error);
+      if (error.response) {
+        console.error("Server Response:", error.response.data);
+        toast.error(error.response.data?.message || "Server error occurred");
+      } else {
+        toast.error(error.message || "Failed to connect to server");
+      }
     } finally {
       setIsSubmitting(false);
     }

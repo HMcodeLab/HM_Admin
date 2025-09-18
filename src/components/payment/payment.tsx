@@ -6,7 +6,7 @@ import React, { useEffect, useState } from "react";
 import PaymentModal from "./PaymentModal";
 import { GrDocumentCsv, GrDownload } from "react-icons/gr";
 import * as XLSX from "xlsx";
-import {jwtDecode} from "jwt-decode";
+import { jwtDecode } from "jwt-decode";
 import { PaymentData } from "@/types";
 
 const Payment: React.FC = () => {
@@ -25,6 +25,7 @@ const Payment: React.FC = () => {
 
   const headers = [
     { label: "S No.", key: "serialNumber" },
+    { label: "Course", key: "course" },
     { label: "Purchased By", key: "purchasedBy.name" },
     { label: "Email", key: "purchasedBy.email" },
     { label: "Phone", key: "purchasedBy.phone" },
@@ -112,6 +113,7 @@ const Payment: React.FC = () => {
   const handleDownload = () => {
     const worksheetData = filteredData.map((payment, index) => ({
       serialNumber: index + 1,
+      course: payment.courses?.[0]?._id || "N/A",
       name: payment.purchasedBy?.name || "N/A",
       email: payment.purchasedBy?.email || "N/A",
       phone: payment.purchasedBy?.phone || "N/A",
@@ -229,6 +231,11 @@ const Payment: React.FC = () => {
                     <td className="px-4 py-2">
                       {indexOfFirstItem + index + 1}
                     </td>
+
+                    <td className="px-4 py-2">
+                      {payment.courses?.[0]?._id || "N/A"}
+                    </td>
+
                     <td className="px-4 py-2">
                       {payment.purchasedBy?.name || "N/A"}
                     </td>

@@ -48,6 +48,12 @@ export interface PaymentData {
 export interface WrappedCourse {
   course?: Course;
 }
+export interface Course {
+  _id: string; // required
+  title: string; // required
+  base_price: number; // required
+}
+
 
 // Batch type (replace any with proper types as needed)
 export interface Batch {

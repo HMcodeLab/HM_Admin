@@ -87,7 +87,7 @@ export const NAV_DATA: NavSection[] = [
             roles: ["superAdmin", "admin", "hr", "instructor"],
           },
           {
-            title: "All Course",
+            title: "View & Edit Course",
             url: "/course/allcourse",
             roles: ["superAdmin", "admin", "hr", "instructor"],
           },
