@@ -141,6 +141,15 @@ export const NAV_DATA: NavSection[] = [
         roles: ["superAdmin", "hr"],
       },
 
+      //Registration
+
+      {
+        title: "Registration",
+        icon: Icons.Table,
+        url: "/registration",
+        roles: ["superAdmin"],
+      },
+
       // Payment
       {
         title: "Payment",
