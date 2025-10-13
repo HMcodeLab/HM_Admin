@@ -8,7 +8,7 @@ type PropsType = {
     active?: number | string;
     inactive?: number | string;
   };
-  Icon: ComponentType<SVGProps<SVGSVGElement>>; // ✅ Supports Lucide icons
+  Icon: ComponentType<SVGProps<SVGSVGElement>>;
 };
 
 export function OverviewCard({ label, data, Icon }: PropsType) {
