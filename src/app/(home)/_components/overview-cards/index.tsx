@@ -39,9 +39,7 @@ export function OverviewCardsGroup() {
       try {
         const result = await fetchUniversityCount(token);
         if (result?.length) return result;
-      } catch (err) {
-        console.warn(`University fetch retry ${i + 1} failed`);
-      }
+      } catch {}
       await new Promise((r) => setTimeout(r, 1000));
     }
     return [];
@@ -73,21 +71,23 @@ export function OverviewCardsGroup() {
         const inactive = courses.filter((c: any) => c.display === false);
         setActiveCoursesCount(active.length);
         setInactiveCoursesCount(inactive.length);
-
         setUniversityCount(universities.length);
 
-        const totalAmount = payments.reduce((sum: number, order: any) => {
-          const success = order?.paymentStauts?.status === "success";
-          const amount = parseFloat(
-            order?.payemntData?.["Total Amount"] || "0",
-          );
-          return success ? sum + amount : sum;
-        }, 0);
-        setTotalEarning(totalAmount);
+        // Only success payments
+        const successPayments = payments.filter(
+          (p: any) =>
+            (p.paymentStatus || p.paymentStauts)?.status === "success",
+        );
 
+        const totalAmount = successPayments.reduce((sum: number, p: any) => {
+          const paymentData = p.paymentData || p.payemntData || {};
+          return sum + Number(paymentData["Total Amount"] || 0);
+        }, 0);
+
+        setTotalEarning(totalAmount);
         setOverviewData(overview);
       } catch (error: any) {
-        console.error("❌ Error loading dashboard:", error.message);
+        console.error("Dashboard fetch error:", error);
         toast.error("Failed to fetch dashboard data");
       } finally {
         setLoading(false);
@@ -105,9 +105,8 @@ export function OverviewCardsGroup() {
         label="Enrolled Student's"
         Icon={icons.Views}
         onClick={() => router.push("/registration")}
-
       />
-      
+
       <RegistratyionCard label="Enrolled Courses" Icon={icons.Views} />
       <OverviewCard
         label="Total Courses"
@@ -121,16 +120,13 @@ export function OverviewCardsGroup() {
       />
       <OverviewCard
         label="Total University"
-        data={{
-          value: compactFormat(universityCount),
-          growthRate: 0,
-        }}
+        data={{ value: compactFormat(universityCount), growthRate: 0 }}
         Icon={icons.Product}
       />
       <OverviewCard
         label="Total Earning"
         data={{
-          value: `₹${totalEarning.toLocaleString("en-IN")}`,
+          value: `₹${totalEarning.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
           growthRate: 0,
         }}
         Icon={icons.Profit}
