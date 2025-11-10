@@ -44,9 +44,9 @@ interface Chapter {
 export interface CurriculumLiveClassesProps {
   courseDetails: CourseType;
   setCourseDetails: React.Dispatch<React.SetStateAction<CourseType>>;
-  uploadedMedia?: MediaItem[]; // optional array of media items
-  setUploadedMedia?: React.Dispatch<React.SetStateAction<MediaItem[]>>; // optional setter
-  needToUpdate?: boolean; // corrected spelling
+  uploadedMedia?: MediaItem[];
+  setUploadedMedia?: React.Dispatch<React.SetStateAction<MediaItem[]>>;
+  needToUpdate?: boolean;
 }
 
 const CurriculumLiveClasses: React.FC<CurriculumLiveClassesProps> = ({
@@ -57,15 +57,9 @@ const CurriculumLiveClasses: React.FC<CurriculumLiveClassesProps> = ({
 }) => {
   const { theme } = useTheme();
   const [selectedMediaFromModal, setSelectedMediaFromModal] = useState("");
-  const [currentChapterIndex, setCurrentChapterIndex] = useState<number | null>(
-    null,
-  );
-  const [currentLessonIndex, setCurrentLessonIndex] = useState<number | null>(
-    null,
-  );
-  const [currentProjectIndex, setCurrentProjectIndex] = useState<number | null>(
-    null,
-  );
+  const [currentChapterIndex, setCurrentChapterIndex] = useState<number | null>(null);
+  const [currentLessonIndex, setCurrentLessonIndex] = useState<number | null>(null);
+  const [currentProjectIndex, setCurrentProjectIndex] = useState<number | null>(null);
   const [selectedMediaType, setSelectedMediaType] = useState("");
   const [isModalVideoOpen, setIsModalVideoOpen] = useState(false);
   const [isModalPdfOpen, setIsModalPdfOpen] = useState(false);
@@ -77,112 +71,20 @@ const CurriculumLiveClasses: React.FC<CurriculumLiveClassesProps> = ({
     setIsModalVideoOpen(true);
   };
 
- const closeModal = useCallback(() => {
-   setIsModalVideoOpen(false);
- }, []);
+  const closeModal = useCallback(() => {
+    setIsModalVideoOpen(false);
+  }, []);
 
   const closePdfModal = useCallback(() => {
     setIsModalPdfOpen(false);
   }, []);
+
   const openPdfModal = (type: string) => {
     setSelectedModal(type);
     setIsModalPdfOpen(true);
   };
 
-
-
-
-  // Input change handler
-  // const handleInputChange = useCallback(
-  //   (
-  //     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  //     options: {
-  //       chapterIndex: number;
-  //       lessonIndex?: number;
-  //       projectIndex?: number;
-  //       field: string;
-  //     },
-  //   ) => {
-  //     const { value } = e.target;
-  //     const { chapterIndex, lessonIndex, projectIndex, field } = options;
-
-  //     setCourseDetails((prev) => {
-  //       const updatedCurriculum = [...prev.curriculum];
-
-  //       if (lessonIndex !== undefined) {
-  //         // Handle lesson fields
-  //         const lesson = updatedCurriculum[chapterIndex].lessons[lessonIndex];
-  //         if (!lesson) return prev;
-
-  //         switch (field) {
-  //           case "lesson_name":
-  //             lesson.lesson_name = value;
-  //             break;
-  //           case "lesson_video":
-  //             lesson.video = value;
-  //             break;
-  //           case "lesson_duration":
-  //             lesson.duration = value;
-  //             break;
-  //           case "lesson_notesName":
-  //             lesson.notesName = value;
-  //             break;
-  //           case "lesson_notesUrl":
-  //             lesson.notes = value;
-  //             break;
-  //           case "lesson_assignmentName":
-  //             lesson.assignmentName = value;
-  //             break;
-  //           case "lesson_assignmentUrl":
-  //             lesson.assignment = value;
-  //             break;
-  //           case "lesson_transcript":
-  //             lesson.transcript = value;
-  //             break;
-  //           case "lesson_liveClass_meetingLink":
-  //             lesson.liveClass.meetingLink = value;
-  //             break;
-  //           case "lesson_liveClass_startDate":
-  //             lesson.liveClass.startDate = value;
-  //             break;
-  //           case "lesson_liveClass_endDate":
-  //             lesson.liveClass.endDate = value;
-  //             break;
-  //         }
-  //       } else if (projectIndex !== undefined) {
-  //         // Handle project fields
-  //         const project = updatedCurriculum[chapterIndex].project[projectIndex];
-  //         if (!project) return prev;
-
-  //         switch (field) {
-  //           case "project_title":
-  //             project.title = value;
-  //             break;
-  //           case "project_startDate":
-  //             project.startDate = value;
-  //             break;
-  //           case "project_duration":
-  //             project.duration = Number(value);
-  //             break;
-  //           case "project_endDate":
-  //             project.endDate = value;
-  //             break;
-  //           case "project_infoPdf":
-  //             project.projectInfoPdf = value;
-  //             break;
-  //         }
-  //       } else {
-  //         // Handle chapter fields
-  //         updatedCurriculum[chapterIndex].chapter_name = value;
-  //       }
-
-  //       return { ...prev, curriculum: updatedCurriculum };
-  //     });
-  //   },
-  //   [setCourseDetails], // Only setCourseDetails is a dependency
-  // );
-
-
+  // Single handleInputChange function (removed duplicate)
   const handleInputChange = useCallback(
     (
       e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -300,8 +202,6 @@ const CurriculumLiveClasses: React.FC<CurriculumLiveClassesProps> = ({
     },
     [setCourseDetails],
   );
-
-
 
   // First useEffect - Handles media selection from modal
   useEffect(() => {
@@ -427,6 +327,7 @@ const CurriculumLiveClasses: React.FC<CurriculumLiveClassesProps> = ({
     closeModal,
     closePdfModal,
   ]);
+
   // Chapter management
   const addChapter = (insertAfterIndex: number) => {
     setCourseDetails((prev) => {
@@ -567,7 +468,7 @@ const CurriculumLiveClasses: React.FC<CurriculumLiveClassesProps> = ({
           courseDetails={courseDetails}
           setCourseDetails={setCourseDetails}
           type={selectedModal}
-          uploadedMedia={uploadedMedia || []} // ✅ default to empty array
+          uploadedMedia={uploadedMedia || []}
           setSelectedMediaFromModal={setSelectedMediaFromModal}
         />
       )}
@@ -579,7 +480,7 @@ const CurriculumLiveClasses: React.FC<CurriculumLiveClassesProps> = ({
           courseDetails={courseDetails}
           setCourseDetails={setCourseDetails}
           type={selectedModal}
-          uploadedMedia={uploadedMedia || []} // ✅ default to empty array
+          uploadedMedia={uploadedMedia || []}
           setSelectedMediaFromModal={setSelectedMediaFromModal}
         />
       )}
@@ -948,11 +849,20 @@ const CurriculumLiveClasses: React.FC<CurriculumLiveClassesProps> = ({
                 ))}
               </div>
 
-              {/* Projects */}
+              {/* Projects Section */}
               <div className="space-y-3">
-                <h3 className={`text-lg font-semibold ${textColor}`}>
-                  Projects
-                </h3>
+                <div className="flex items-center justify-between">
+                  <h3 className={`text-lg font-semibold ${textColor}`}>
+                    Projects
+                  </h3>
+                  <button
+                    onClick={() => addProject(chapterIndex)}
+                    className={buttonClass}
+                  >
+                    <FaPlus /> Add Project
+                  </button>
+                </div>
+                
                 {chapter.project?.map((project, projectIndex) => (
                   <div
                     key={projectIndex}

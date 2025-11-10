@@ -13,6 +13,8 @@ import {
 import { OverviewCard } from "./card";
 import * as icons from "./icons";
 import Loader from "@/components/Loader";
+import { RegistratyionCard } from "./RegistrationCard";
+import { useRouter } from "next/navigation";
 
 export function OverviewCardsGroup() {
   const [enrolledCount, setEnrolledCount] = useState(0);
@@ -29,6 +31,9 @@ export function OverviewCardsGroup() {
   });
   const [loading, setLoading] = useState(true);
 
+  const router = useRouter();
+
+  // ⏳ Retry wrapper for unstable API (502 errors etc.)
   const retryUniversityFetch = async (token: string, retries = 2) => {
     for (let i = 0; i < retries; i++) {
       try {
@@ -95,12 +100,14 @@ export function OverviewCardsGroup() {
   if (loading) return <Loader />;
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-      <OverviewCard
+    <div className="grid gap-4 sm:grid-cols-2 sm:gap-6 xl:grid-cols-4 2xl:gap-7.5">
+      <RegistratyionCard
         label="Enrolled Student's"
-        data={{ ...overviewData.views, value: compactFormat(enrolledCount) }}
         Icon={icons.Views}
+        onClick={() => router.push("/registration")}
       />
+
+      <RegistratyionCard label="Enrolled Courses" Icon={icons.Views} />
       <OverviewCard
         label="Total Courses"
         data={{
