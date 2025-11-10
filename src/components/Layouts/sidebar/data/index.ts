@@ -70,6 +70,13 @@ export const NAV_DATA: NavSection[] = [
         ],
       },
 
+        {
+        title: "Messages",
+        icon: Icons.FourCircle,
+        url: "/messages",
+        roles: ["superAdmin", "instructor", "trainer"],
+      },
+
       // HM Courses
       {
         title: "HM Courses",

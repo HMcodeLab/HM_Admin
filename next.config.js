@@ -87,6 +87,12 @@ const nextConfig = {
         port: "",
         pathname: "/**",
       },
+       {
+        protocol: "https",
+        hostname: "euphoriaxr.com",
+        port: "",
+        pathname: "/**",
+      },
     ],
   },
   webpack(config, { dev, isServer }) {
