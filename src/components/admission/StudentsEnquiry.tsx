@@ -16,26 +16,38 @@ const StudentsEnquiry = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
 
-  const fetchEnquiries = async () => {
-    setLoading(true);
-    try {
-      const token = localStorage.getItem("adminToken");
-      const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/getAllEnquiry`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+ const fetchEnquiries = async () => {
+  setLoading(true);
+  try {
+    const token = localStorage.getItem("adminToken");
+    const response = await axios.get(
+      `${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/getAllEnquiry`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
         },
-      );
-      setEnquiries(response.data.enquiries || []);
-    } catch (error) {
-      toast.error("Error fetching enquiries");
-      console.error("Fetch error:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+      }
+    );
+
+    // ✅ Sort latest enquiries on top
+    const sortedEnquiries = (response.data.enquiries || []).sort((a: any, b: any) => {
+      // If createdAt exists, use it for accuracy
+      if (a.createdAt && b.createdAt) {
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      }
+      // Otherwise, fallback to _id comparison
+      return b._id.localeCompare(a._id);
+    });
+
+    setEnquiries(sortedEnquiries);
+  } catch (error) {
+    toast.error("Error fetching enquiries");
+    console.error("Fetch error:", error);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   useEffect(() => {
     fetchEnquiries();

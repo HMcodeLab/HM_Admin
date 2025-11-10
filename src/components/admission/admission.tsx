@@ -41,13 +41,14 @@ const fetchData = async () => {
       setLoading(false);
       return;
     }
+
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/getadmindashdata`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      },
+      }
     );
 
     if (!res.ok) {
@@ -56,7 +57,16 @@ const fetchData = async () => {
 
     const data = await res.json();
     console.log("API response:", data);
-    setStudents(data.data?.users || []);
+
+    // ✅ Sort students so latest entries show on top
+    const sortedStudents = (data.data?.users || []).sort((a: any, b: any) => {
+      if (a.createdAt && b.createdAt) {
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(); // latest first
+      }
+      return b._id.localeCompare(a._id); // fallback if createdAt missing
+    });
+
+    setStudents(sortedStudents);
   } catch (error: any) {
     console.error("Fetch error:", error);
     toast.error("Failed to fetch students");
@@ -64,6 +74,7 @@ const fetchData = async () => {
     setLoading(false);
   }
 };
+
 
 
   useEffect(() => {

@@ -8,6 +8,7 @@ import { HiOutlineAcademicCap } from "react-icons/hi2";
 import Image from "next/image";
 import Loader from "@/components/Loader";
 import { motion } from "framer-motion";
+import { MdDelete } from "react-icons/md";
 
 interface University {
   _id: string;
@@ -18,69 +19,116 @@ interface University {
 
 const University: React.FC = () => {
   const [collegeUsers, setCollegeUsers] = useState<University[]>([]);
-  const [filteredUniversities, setFilteredUniversities] = useState<
-    University[]
-  >([]);
+  const [filteredUniversities, setFilteredUniversities] = useState<University[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingView, setLoadingView] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedCollege, setSelectedCollege] = useState<University | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const router = useRouter();
 
   // Fetch universities
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await axios.get(
-          `${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/collegeUsers`,
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
-            },
+useEffect(() => {
+  const fetchData = async () => {
+    try {
+      const res = await axios.get(
+        `${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/collegeUsers`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
           },
-        );
-        setCollegeUsers(res.data.data);
-        setFilteredUniversities(res.data.data);
-      } catch (error) {
-        console.error("Failed to fetch universities:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+        }
+      );
 
-    fetchData();
-  }, []);
+      // ✅ Sort latest first (by _id or createdAt if available)
+      const sortedData = res.data.data.sort((a: any, b: any) => {
+        // If createdAt exists in your schema, prefer this:
+        if (a.createdAt && b.createdAt) {
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        }
+        // Otherwise, sort using ObjectId timestamp
+        return b._id.localeCompare(a._id);
+      });
 
-  // Filter on search
+      setCollegeUsers(sortedData);
+      setFilteredUniversities(sortedData);
+    } catch (error) {
+      console.error("Failed to fetch universities:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchData();
+}, []);
+
+  // Filter universities based on search
   useEffect(() => {
     const result = collegeUsers.filter((uni) =>
-      uni?.name?.toLowerCase().includes(searchTerm.toLowerCase()),
+      uni?.name?.toLowerCase().includes(searchTerm.toLowerCase())
     );
     setFilteredUniversities(result);
   }, [searchTerm, collegeUsers]);
 
-  // Prefetch detail pages for faster navigation
+  // Prefetch detail pages
   useEffect(() => {
     filteredUniversities.forEach((college) => {
       router.prefetch(`/university/${college._id}`);
     });
   }, [filteredUniversities, router]);
 
-  // Edit button handler
+  // Edit handler
   const editModeActive = (college: University) => {
     localStorage.setItem("collegeEmail", college.email);
     router.push(`/university/edit?email=${college.email}`);
   };
 
-  // View details button handler with loader and blur background
-const handleViewDetails = (college: University) => {
-  setLoadingView(true);
-  // store email before navigating
-  localStorage.setItem("universityEmail", college.email);
-  router.push(
-    `/university/details?email=${encodeURIComponent(college.email)}&name=${encodeURIComponent(college.name)}`,
-  );
-};
+  // View details handler
+  const handleViewDetails = (college: University) => {
+    setLoadingView(true);
+    localStorage.setItem("universityEmail", college.email);
+    router.push(
+      `/university/details?email=${encodeURIComponent(
+        college.email
+      )}&name=${encodeURIComponent(college.name)}`
+    );
+  };
 
+  // Delete handler — open confirmation modal
+  const handleDeleteClick = (college: University) => {
+    setSelectedCollege(college);
+    setShowDeleteModal(true);
+  };
+
+  // Confirm delete
+  const confirmDelete = async () => {
+    if (!selectedCollege) return;
+    setDeleting(true);
+    try {
+      await axios.delete(
+        `${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/collegeUsers/${selectedCollege._id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
+          },
+        }
+      );
+      setCollegeUsers((prev) =>
+        prev.filter((college) => college._id !== selectedCollege._id)
+      );
+      setFilteredUniversities((prev) =>
+        prev.filter((college) => college._id !== selectedCollege._id)
+      );
+      setShowDeleteModal(false);
+      setSelectedCollege(null);
+    } catch (error) {
+      console.error("Failed to delete university:", error);
+      alert("Failed to delete university. Please try again.");
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   // University card component
   const UniversityCard: React.FC<{ college: University }> = ({ college }) => {
@@ -88,10 +136,15 @@ const handleViewDetails = (college: University) => {
 
     return (
       <div className="group relative flex transform flex-col items-center space-y-4 rounded-2xl border border-gray-200 p-5 text-center shadow-lg transition-transform hover:-translate-y-1 hover:shadow-xl dark:border-gray-700 dark:bg-gray-800">
-        <div className="absolute right-3 top-3">
+        <div className="absolute right-3 top-3 flex space-x-2">
           <Edit
             onClick={() => editModeActive(college)}
             className="cursor-pointer text-gray-500 transition-colors hover:text-blue-600 dark:text-gray-300"
+            size={22}
+          />
+          <MdDelete
+            onClick={() => handleDeleteClick(college)}
+            className="cursor-pointer text-gray-500 transition-colors hover:text-red-600 dark:text-gray-300"
             size={22}
           />
         </div>
@@ -133,20 +186,14 @@ const handleViewDetails = (college: University) => {
 
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-blue-50 to-white px-4 py-10 text-black dark:from-gray-900 dark:to-black dark:text-white">
-      {/* Loader overlay */}
-      {loadingView && (
-        <div >
-          <Loader />
-        </div>
-      )}
+      {loadingView && <Loader />}
 
-      {/* Content container with blur & disable pointer events when loader active */}
-      <div className={loadingView ? "pointer-events-none blur-sm filter" : ""}>
-        {/* Search input */}
-        <div className="mb-6 flex justify-end">
+      <div className={loadingView ? "pointer-events-none blur-sm filter" : ""} >
+        {/* Search bar */}
+        <div className="mb-6 flex justify-end border-b pb-4">
           <motion.input
-            initial={{ width: "8rem" }}
-            animate={{ width: searchTerm ? "16rem" : "12rem" }}
+            initial={{ width: "16rem" }}
+            animate={{ width: searchTerm ? "24rem" : "26rem" }}
             transition={{ duration: 0.4 }}
             type="text"
             placeholder="Search University..."
@@ -156,7 +203,7 @@ const handleViewDetails = (college: University) => {
           />
         </div>
 
-        {/* Loader while fetching list */}
+        {/* Loader */}
         {loading ? (
           <Loader />
         ) : (
@@ -167,6 +214,37 @@ const handleViewDetails = (college: University) => {
           </div>
         )}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && selectedCollege && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="rounded-2xl bg-white p-6 shadow-2xl dark:bg-gray-800 w-[90%] max-w-sm text-center">
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-white mb-3">
+              Are you sure you want to delete this university?
+            </h2>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">
+              {selectedCollege.name}
+            </p>
+
+            <div className="flex justify-center gap-4">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="rounded-full border border-gray-400 px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                disabled={deleting}
+              >
+                No
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="rounded-full bg-red-600 px-5 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-60"
+                disabled={deleting}
+              >
+                {deleting ? "Deleting..." : "Yes, Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

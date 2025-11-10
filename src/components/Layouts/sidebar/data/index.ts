@@ -25,32 +25,33 @@ export const NAV_DATA: NavSection[] = [
         title: "Admin Dashboard",
         icon: FaUserTie,
         url: "/admin/dashboard",
-        roles: ["admin", "superAdmin"],
+        roles: ["admin"],
       },
       {
         title: "HR Dashboard",
         icon: FaUsersCog,
         url: "/hr/dashboard",
-        roles: ["hr", "superAdmin", "hr"],
+        roles: ["hr"],
       },
       {
         title: "Trainer Dashboard",
         icon: FaChalkboardTeacher,
         url: "/trainer/dashboard",
-        roles: ["trainer", "superAdmin", "instructor"],
+        roles: ["trainer", "instructor"],
       },
       {
         title: "University Dashboard",
         icon: FaUniversity,
         url: "/university/dashboard",
-        roles: ["university", "superAdmin"],
+        roles: ["university"],
       },
       {
         title: "PAP Dashboard",
         icon: FaHandshake,
         url: "/pap/dashboard",
-        roles: ["pap", "superAdmin"],
+        roles: ["pap"],
       },
+
       // Admission
       {
         title: "Admission",
@@ -70,7 +71,7 @@ export const NAV_DATA: NavSection[] = [
         ],
       },
 
-        {
+      {
         title: "Messages",
         icon: Icons.FourCircle,
         url: "/messages",

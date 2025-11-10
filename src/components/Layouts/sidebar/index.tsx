@@ -3,7 +3,7 @@
 import { Logo } from "@/components/logo";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { NAV_DATA } from "./data";
 import { ArrowLeftIcon, ChevronUp } from "./icons";
@@ -19,15 +19,23 @@ interface SidebarProps {
  * Role-based filtering function
  */
 function filterNavByRole(navData: NavSection[], role: string): NavSection[] {
-  if (role === "superAdmin") {
-    return navData;
-  }
-
   return navData
     .map((section) => ({
       ...section,
       items: section.items
-        .filter((item) => item.roles?.includes(role))
+        .filter((item) => {
+          // ✅ Only show items that match the user's role
+          if (role === "superAdmin") {
+            // Super admin should NOT see all dashboards — only "Dashboard" and other allowed menus
+            if (item.title.toLowerCase().includes("dashboard")) {
+              return item.title === "Dashboard"; // Only main dashboard
+            }
+            return item.roles?.includes("superAdmin"); // Other sections still visible if they include superAdmin
+          }
+
+          // For other roles (admin, hr, trainer, etc.)
+          return item.roles?.includes(role);
+        })
         .map((item) => ({
           ...item,
           items: item.items
@@ -44,6 +52,7 @@ function filterNavByRole(navData: NavSection[], role: string): NavSection[] {
 
 export function Sidebar({ userRole }: SidebarProps) {
   const pathname = usePathname();
+  const router = useRouter(); // <-- added
   const { setIsOpen, isOpen, isMobile, toggleSidebar } = useSidebarContext();
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
 
@@ -77,6 +86,30 @@ export function Sidebar({ userRole }: SidebarProps) {
       return JSON.stringify(prev) === JSON.stringify(updated) ? prev : updated;
     });
   }, [pathname, filteredNav]);
+
+  // ----------------------------
+  // Redirect logic: when at root ("/"), send non-superAdmin roles to their dashboard routes
+  // ----------------------------
+  useEffect(() => {
+    if (pathname === "/") {
+      const roleToPathMap: Record<string, string> = {
+        superAdmin: "/", // keep root for superAdmin
+        admin: "/admin/dashboard",
+        hr: "/hr/dashboard",
+        trainer: "/trainer/dashboard",
+        instructor: "/trainer/dashboard", // if instructor uses same as trainer
+        university: "/university/dashboard",
+        pap: "/pap/dashboard",
+      };
+
+      const target = roleToPathMap[userRole];
+      // If there's a mapping and it's different from current pathname, replace to target
+      if (target && target !== pathname) {
+        // use replace so back button doesn't send user back to "/"
+        router.replace(target);
+      }
+    }
+  }, [pathname, userRole, router]);
 
   return (
     <>

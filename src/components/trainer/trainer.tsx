@@ -32,28 +32,38 @@ const Trainer: React.FC = () => {
     typeof window !== "undefined" ? localStorage.getItem("adminToken") : null;
 
   // Wrap fetchData in useCallback so it can be a stable dependency in useEffect
-  const fetchData = useCallback(
-    async (name: string = "") => {
-      setLoading(true);
-      try {
-        const endpoint = name
-          ? `${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/searchinstructor?name=${encodeURIComponent(name)}`
-          : `${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/instructors`;
+const fetchData = useCallback(
+  async (name: string = "") => {
+    setLoading(true);
+    try {
+      const endpoint = name
+        ? `${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/searchinstructor?name=${encodeURIComponent(name)}`
+        : `${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/instructors`;
 
-        const response = await axios.get(endpoint, {
-          headers: {
-            Authorization: `Bearer ${adminToken}`,
-          },
-        });
-        setInstructors(response.data.data);
-      } catch (error: any) {
-        toast.error(error?.message || "Failed to fetch instructors");
-      } finally {
-        setLoading(false);
-      }
-    },
-    [adminToken],
-  );
+      const response = await axios.get(endpoint, {
+        headers: {
+          Authorization: `Bearer ${adminToken}`,
+        },
+      });
+
+      // ✅ Sort latest instructors first
+      const sortedInstructors = (response.data.data || []).sort((a: any, b: any) => {
+        if (a.createdAt && b.createdAt) {
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(); // latest first
+        }
+        return b._id.localeCompare(a._id); // fallback if createdAt missing
+      });
+
+      setInstructors(sortedInstructors);
+    } catch (error: any) {
+      toast.error(error?.message || "Failed to fetch instructors");
+    } finally {
+      setLoading(false);
+    }
+  },
+  [adminToken],
+);
+
 
   // Fetch instructors on mount
   useEffect(() => {
@@ -129,7 +139,8 @@ const Trainer: React.FC = () => {
             placeholder="Search instructor..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-60 rounded-full border border-gray-300 bg-white px-4 py-2 pl-10 text-gray-700 shadow-md transition-all duration-300 focus:w-72 focus:border-indigo-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+            className="w-60 rounded-full border border-gray-300 bg-white px-4 py-2 pl-10 text-gray-700 shadow-md 
+            transition-all duration-300 focus:w-72 focus:border-indigo-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-white"
           />
           <svg
             className="absolute left-3 top-3 h-5 w-5 text-gray-500 dark:text-gray-400"

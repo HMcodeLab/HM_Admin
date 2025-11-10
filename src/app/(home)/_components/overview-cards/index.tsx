@@ -15,6 +15,12 @@ import * as icons from "./icons";
 import Loader from "@/components/Loader";
 import { RegistratyionCard } from "./RegistrationCard";
 import { useRouter } from "next/navigation";
+import { Admin } from "./Admin";
+import { University } from "./University";
+// import { HR } from "./HR";
+import { Trainer } from "./Trainer";
+
+
 
 export function OverviewCardsGroup() {
   const [enrolledCount, setEnrolledCount] = useState(0);
@@ -131,6 +137,30 @@ export function OverviewCardsGroup() {
         }}
         Icon={icons.Profit}
       />
+      <Admin 
+        label="Admin Users"
+        Icon={icons.Views}
+        onClick={() => router.push("/admindetails")}
+      
+      />
+
+      <University 
+        label="University's"
+        Icon={icons.Views}
+        onClick={() => router.push("/university/view")}
+      />
+      {/* <HR 
+        label="University Users"
+        Icon={icons.Views}
+        onClick={() => router.push("/registration")}
+      /> */}
+      <Trainer 
+        label="Trainer's"
+        Icon={icons.Views}
+        onClick={() => router.push("/trainer")}
+      />
+
+
     </div>
   );
 }

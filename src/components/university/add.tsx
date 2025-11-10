@@ -7,8 +7,6 @@ import React, {
   ChangeEvent,
   FormEvent,
 } from "react";
-import { BiPlusMedical } from "react-icons/bi";
-import { ImCross } from "react-icons/im";
 import axios from "axios";
 import toast, { Toaster } from "react-hot-toast";
 import Image from "next/image";
@@ -140,13 +138,15 @@ const RegisterUniversity: React.FC = () => {
 
       <form
         onSubmit={handleSubmit}
+        autoComplete="off"
         className="grid gap-6 sm:grid-cols-1 lg:grid-cols-2"
       >
         <div className="flex flex-col gap-2">
-          <label>Name</label>
+          <label>TPO Name</label>
           <input
             type="text"
             name="name"
+            placeholder="Enter TPO name"
             value={formData.name}
             onChange={handleChange}
             className="rounded border p-2 dark:border-gray-700 dark:bg-gray-800"
@@ -154,10 +154,11 @@ const RegisterUniversity: React.FC = () => {
         </div>
 
         <div className="flex flex-col gap-2">
-          <label>College</label>
+          <label>University Name</label>
           <input
             type="text"
             name="college"
+            placeholder="Enter university name"
             value={formData.college}
             onChange={handleChange}
             className="rounded border p-2 dark:border-gray-700 dark:bg-gray-800"
@@ -169,6 +170,8 @@ const RegisterUniversity: React.FC = () => {
           <input
             type="email"
             name="email"
+            placeholder="Enter email address"
+            autoComplete="new-email"
             value={formData.email}
             onChange={handleChange}
             className="rounded border p-2 dark:border-gray-700 dark:bg-gray-800"
@@ -180,6 +183,8 @@ const RegisterUniversity: React.FC = () => {
           <input
             type="password"
             name="password"
+            placeholder="Enter password"
+            autoComplete="new-password"
             value={formData.password}
             onChange={handleChange}
             className="rounded border p-2 dark:border-gray-700 dark:bg-gray-800"
@@ -191,6 +196,7 @@ const RegisterUniversity: React.FC = () => {
           <input
             type="text"
             name="phoneNo"
+            placeholder="Enter phone number"
             value={formData.phoneNo}
             onChange={handleChange}
             className="rounded border p-2 dark:border-gray-700 dark:bg-gray-800"
@@ -202,6 +208,7 @@ const RegisterUniversity: React.FC = () => {
           <input
             type="text"
             name="coins"
+            placeholder="Enter coins amount"
             value={formData.coins}
             onChange={handleChange}
             className="rounded border p-2 dark:border-gray-700 dark:bg-gray-800"
@@ -214,7 +221,7 @@ const RegisterUniversity: React.FC = () => {
             type="file"
             accept="image/*"
             onChange={handleFileChange}
-            className="text-sm"
+            className="text-sm  border p-4 rounded dark:border-gray-700"
           />
           {formData.profile && (
             <Image
@@ -231,7 +238,7 @@ const RegisterUniversity: React.FC = () => {
           <label>Choose Course</label>
           <input
             type="text"
-            placeholder="Search Course"
+            placeholder="Search course"
             ref={searchRef}
             className="w-full rounded border p-2 dark:border-gray-700 dark:bg-gray-800"
           />
@@ -262,7 +269,7 @@ const RegisterUniversity: React.FC = () => {
 
         <button
           type="submit"
-          className="col-span-full mt-4 rounded bg-black py-2 text-white hover:opacity-90 dark:bg-white dark:text-black"
+          className="col-span-full mt-4 w-1/4 mx-auto flex justify-center rounded bg-black py-2 text-white hover:opacity-90 dark:bg-white dark:text-black"
         >
           Submit
         </button>

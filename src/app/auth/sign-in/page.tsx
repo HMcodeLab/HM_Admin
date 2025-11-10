@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Loader from "@/components/Loader";
 
 export default function SignIn() {
   const router = useRouter();
@@ -17,13 +18,13 @@ export default function SignIn() {
     } else {
       setCheckingAuth(false);
     }
-  }, [router]); // <-- add router here
+  }, [router]); 
 
   if (checkingAuth) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-white dark:bg-gray-900">
         <p className="text-lg font-semibold text-gray-600 dark:text-gray-300">
-          Checking authentication...
+          <Loader />
         </p>
       </div>
     );
