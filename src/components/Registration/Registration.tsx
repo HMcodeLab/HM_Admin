@@ -52,7 +52,7 @@ const Registration: React.FC = () => {
       const fetchData = async () => {
         try {
           const response = await fetch(
-            `${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/getAllUser`,
+            `${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/getAllUsers`,
             {
               headers: { Authorization: `Bearer ${token}` },
             },
@@ -61,6 +61,7 @@ const Registration: React.FC = () => {
           if (!response.ok) throw new Error("Failed to fetch data");
 
           const result = await response.json();
+          console.log("checkign data", result);
           setData(result || []);
         } catch (error) {
           console.error("Failed to fetch users:", error);

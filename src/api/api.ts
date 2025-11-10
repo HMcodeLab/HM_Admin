@@ -39,7 +39,7 @@ const getAuthHeaders = (adminToken: string) => ({
 export const fetchEnquiries = async (adminToken: string) => {
   try {
     const response = await axios.get(
-      `${API_URL}/getAllEnquiry`,
+      `${API_URL}/getallorders`,
       getAuthHeaders(adminToken),
     );
     return response.data.enquiries || [];
@@ -93,6 +93,7 @@ export const fetchPayments = async (adminToken: string) => {
     return [];
   }
 };
+
 
 // 🔹 Fetch Course by Admin Email
 export const fetchCourseID = async (adminToken: string, adminEmail: string) => {

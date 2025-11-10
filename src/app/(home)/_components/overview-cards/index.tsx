@@ -29,15 +29,12 @@ export function OverviewCardsGroup() {
   });
   const [loading, setLoading] = useState(true);
 
-  // ⏳ Retry wrapper for unstable API (502 errors etc.)
   const retryUniversityFetch = async (token: string, retries = 2) => {
     for (let i = 0; i < retries; i++) {
       try {
         const result = await fetchUniversityCount(token);
         if (result?.length) return result;
-      } catch (err) {
-        console.warn(`University fetch retry ${i + 1} failed`);
-      }
+      } catch {}
       await new Promise((r) => setTimeout(r, 1000));
     }
     return [];
@@ -69,21 +66,23 @@ export function OverviewCardsGroup() {
         const inactive = courses.filter((c: any) => c.display === false);
         setActiveCoursesCount(active.length);
         setInactiveCoursesCount(inactive.length);
-
         setUniversityCount(universities.length);
 
-        const totalAmount = payments.reduce((sum: number, order: any) => {
-          const success = order?.paymentStauts?.status === "success";
-          const amount = parseFloat(
-            order?.payemntData?.["Total Amount"] || "0",
-          );
-          return success ? sum + amount : sum;
-        }, 0);
-        setTotalEarning(totalAmount);
+        // Only success payments
+        const successPayments = payments.filter(
+          (p: any) =>
+            (p.paymentStatus || p.paymentStauts)?.status === "success",
+        );
 
+        const totalAmount = successPayments.reduce((sum: number, p: any) => {
+          const paymentData = p.paymentData || p.payemntData || {};
+          return sum + Number(paymentData["Total Amount"] || 0);
+        }, 0);
+
+        setTotalEarning(totalAmount);
         setOverviewData(overview);
       } catch (error: any) {
-        console.error("❌ Error loading dashboard:", error.message);
+        console.error("Dashboard fetch error:", error);
         toast.error("Failed to fetch dashboard data");
       } finally {
         setLoading(false);
@@ -96,16 +95,12 @@ export function OverviewCardsGroup() {
   if (loading) return <Loader />;
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 sm:gap-6 xl:grid-cols-4 2xl:gap-7.5">
+    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
       <OverviewCard
         label="Enrolled Student's"
-        data={{
-          ...overviewData.views,
-          value: compactFormat(enrolledCount),
-        }}
+        data={{ ...overviewData.views, value: compactFormat(enrolledCount) }}
         Icon={icons.Views}
       />
-
       <OverviewCard
         label="Total Courses"
         data={{
@@ -116,20 +111,15 @@ export function OverviewCardsGroup() {
         }}
         Icon={icons.Users}
       />
-
       <OverviewCard
         label="Total University"
-        data={{
-          value: compactFormat(universityCount),
-          growthRate: 0,
-        }}
+        data={{ value: compactFormat(universityCount), growthRate: 0 }}
         Icon={icons.Product}
       />
-
       <OverviewCard
         label="Total Earning"
         data={{
-          value: `₹${totalEarning.toLocaleString("en-IN")}`,
+          value: `₹${totalEarning.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
           growthRate: 0,
         }}
         Icon={icons.Profit}
