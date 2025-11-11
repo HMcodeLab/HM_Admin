@@ -2,14 +2,13 @@
 
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-
-import { RiCoinsFill } from "react-icons/ri";
+import { RiCoinsFill, RiUserSettingsLine } from "react-icons/ri";
 import { GiBookshelf } from "react-icons/gi";
+import { FaDownload, FaUsers, FaChartLine, FaUniversity } from "react-icons/fa";
+import { MdEmail, MdPhone, MdLocationOn } from "react-icons/md";
 import Loader from "@/components/Loader";
-
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
-import { FaDownload } from "react-icons/fa";
 
 const SERVER_DOMAIN = process.env.NEXT_PUBLIC_SERVER_DOMAIN || "";
 
@@ -30,7 +29,12 @@ interface Student {
 }
 
 interface University {
+  _id?: string;
+  email?: string;
+  mobile?: number;
   name?: string;
+  profile?: string;
+  college?: string;
   used_coins?: number;
   coins?: number;
   coursesAllotted?: Course[];
@@ -88,16 +92,15 @@ const Page: React.FC = () => {
   });
 
   // Apply search filter (name, email, phone, college)
-const searchedUsers = filteredUsers?.filter((student) => {
-  const term = searchTerm.toLowerCase();
-  return (
-    student.name?.toLowerCase().includes(term) ||
-    student.email?.toLowerCase().includes(term) ||
-    (student.phone ?? "").toString().includes(term) ||
-    student.college?.toLowerCase().includes(term)
-  );
-});
-
+  const searchedUsers = filteredUsers?.filter((student) => {
+    const term = searchTerm.toLowerCase();
+    return (
+      student.name?.toLowerCase().includes(term) ||
+      student.email?.toLowerCase().includes(term) ||
+      (student.phone ?? "").toString().includes(term) ||
+      student.college?.toLowerCase().includes(term)
+    );
+  });
 
   // Pagination calculations
   const totalPages = Math.ceil((searchedUsers?.length || 0) / itemsPerPage);
@@ -142,235 +145,359 @@ const searchedUsers = filteredUsers?.filter((student) => {
     saveAs(dataBlob, "students.xlsx");
   };
 
+  // Stats calculations
+  const totalStudents = university.users?.length || 0;
+  const coursesOpened = university.users?.filter(user => user.isCourseOpened).length || 0;
+  const coursesNotOpened = totalStudents - coursesOpened;
+
   return (
     <>
       {loading ? (
         <Loader />
       ) : (
-        <main className="min-h-screen bg-gray-50 p-4 transition-colors duration-500 dark:bg-gray-900 md:p-8">
-          <h1 className="mb-8 text-center text-4xl font-extrabold text-gray-800 underline dark:text-gray-200 md:text-5xl">
-            {university.name ?? "University Name"}
-          </h1>
-
-          <section className="mb-8 flex flex-col justify-center gap-8 md:flex-row">
-            <div
-              className="flex w-full cursor-pointer items-center gap-4 rounded-lg border border-gray-200 bg-white p-6 shadow-md transition hover:scale-[1.03] dark:border-gray-700 dark:bg-gray-800 md:w-1/3"
-              title="Coins Used / Total Coins"
-            >
-              <RiCoinsFill className="text-7xl text-yellow-400" />
-              <div>
-                <p className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-                  {university.used_coins ?? 0} / {university.coins ?? 0}
-                </p>
-                <p className="text-lg font-medium text-gray-600 dark:text-gray-400">
-                  Coins
-                </p>
+        <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4 transition-colors duration-500 md:p-8">
+          {/* Header Section */}
+          <div className="max-w-7xl mx-auto">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 mb-8 border border-gray-200 dark:border-gray-700">
+              <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-2xl font-bold shadow-lg">
+                    {university.name?.charAt(0) || "U"}
+                  </div>
+                  <div>
+                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+                      {university?.name || "University Dashboard"}
+                    </h1>
+                    <p className="text-gray-600 dark:text-gray-300 mt-1">
+                      Training & Placement Office Management System
+                    </p>
+                  </div>
+                </div>
+                
+                {/* TPO Details Card */}
+                <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl p-4 text-white shadow-lg w-full lg:w-auto">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                      <RiUserSettingsLine className="text-xl" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-white">TPO Details</h3>
+                      <p className="text-sm opacity-90">{university.name || "TPO Name"}</p>
+                      <div className="flex items-center gap-2 mt-1 text-xs">
+                        <MdEmail className="opacity-80" />
+                        <span>{university.email || "N/A"}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-xs">
+                        <MdPhone className="opacity-80" />
+                        <span>{university.mobile || "N/A"}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div
-              onClick={() => setCourseOpened(true)}
-              className="flex w-full cursor-pointer items-center gap-4 rounded-lg border border-gray-200 bg-white p-6 shadow-md transition hover:scale-[1.03] dark:border-gray-700 dark:bg-gray-800 md:w-1/3"
-              title="Total Courses Allotted"
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => e.key === "Enter" && setCourseOpened(true)}
-            >
-              <GiBookshelf className="text-7xl text-blue-500" />
-              <div>
-                <p className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-                  {university.coursesAllotted?.length ?? 0}
-                </p>
-                <p className="text-lg font-medium text-gray-600 dark:text-gray-400">
-                  Courses
-                </p>
+            {/* Stats Grid */}
+            <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-300">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Coins</p>
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+                      {university.coins ?? 0}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      Used: {university.used_coins ?? 0}
+                    </p>
+                  </div>
+                  <div className="w-12 h-12 bg-yellow-100 dark:bg-yellow-900/30 rounded-full flex items-center justify-center">
+                    <RiCoinsFill className="text-2xl text-yellow-600" />
+                  </div>
+                </div>
               </div>
-            </div>
-          </section>
 
-          {/* Filter + Search + Export */}
-          <section className="mx-auto mb-6 flex max-w-4xl flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div className="w-full md:w-1/3">
-             
-              <select
-                id="courseFilter"
-                value={filteredOpen === null ? "" : String(filteredOpen)}
-                onChange={(e) =>
-                  setFilteredOpen(
-                    e.target.value === "" ? null : e.target.value === "true",
-                  )
-                }
-                className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 transition focus:ring-2 focus:ring-blue-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
-              >
-                <option value="">All Students</option>
-                <option value="true">Course Opened</option>
-                <option value="false">Course Not Opened</option>
-              </select>
-            </div>
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-300">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Courses Allotted</p>
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+                      {university.coursesAllotted?.length ?? 0}
+                    </p>
+                  </div>
+                  <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
+                    <GiBookshelf className="text-2xl text-blue-600" />
+                  </div>
+                </div>
+              </div>
 
-            <input
-              type="text"
-              placeholder="Search by name, email, phone, or college"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-[60%] rounded-md border border-gray-300 px-2 py-2 text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-white md:w-1/2"
-            />
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-300">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Students</p>
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+                      {totalStudents}
+                    </p>
+                  </div>
+                  <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
+                    <FaUsers className="text-xl text-green-600" />
+                  </div>
+                </div>
+              </div>
 
-            <button
-              onClick={exportToExcel}
-              className="rounded-md bg-green-600 px-6 py-2 text-white shadow transition hover:bg-green-700"
-            >
-              <FaDownload />
-            </button>
-          </section>
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-300">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Course Engagement</p>
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+                      {coursesOpened}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      Not opened: {coursesNotOpened}
+                    </p>
+                  </div>
+                  <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center">
+                    <FaChartLine className="text-xl text-purple-600" />
+                  </div>
+                </div>
+              </div>
+            </section>
 
-          {/* Table */}
-          <section className="overflow-x-auto">
-            <table className="min-w-full table-auto border-collapse rounded-lg border border-gray-300 bg-white shadow-md dark:border-gray-700 dark:bg-gray-800">
-              <thead className="bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-gray-200">
-                <tr>
-                  {[
-                    "SNO.",
-                    "Name",
-                    "Phone",
-                    "Email",
-                    "College/University",
-                    "Courses Purchased",
-                    "Created At",
-                    "Course Opened",
-                  ].map((header) => (
-                    <th
-                      key={header}
-                      className="border-b border-gray-300 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider dark:border-gray-600"
-                    >
-                      {header}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {paginatedUsers && paginatedUsers.length > 0 ? (
-                  paginatedUsers.map((student, i) => (
-                    <tr
-                      key={`${student.email ?? i}-${i}`}
-                      className="transition hover:bg-green-50 dark:hover:bg-green-900"
-                    >
-                      <td className="border-b border-gray-300 px-4 py-3 dark:border-gray-600">
-                        {(currentPage - 1) * itemsPerPage + i + 1}
-                      </td>
-                      <td className="border-b border-gray-300 px-4 py-3 dark:border-gray-600">
-                        {student.name ?? "N/A"}
-                      </td>
-                      <td className="border-b border-gray-300 px-4 py-3 dark:border-gray-600">
-                        {student.phone ?? "N/A"}
-                      </td>
-                      <td className="border-b border-gray-300 px-4 py-3 dark:border-gray-600">
-                        {student.email ?? "N/A"}
-                      </td>
-                      <td className="border-b border-gray-300 px-4 py-3 dark:border-gray-600">
-                        {student.college ?? "N/A"}
-                      </td>
-                      <td className="border-b border-gray-300 px-4 py-3 text-center dark:border-gray-600">
-                        {student.purchased_courses?.length ?? 0}
-                      </td>
-                      <td className="border-b border-gray-300 px-4 py-3 dark:border-gray-600">
-                        {student.createdAt
-                          ? new Date(student.createdAt).toLocaleDateString()
-                          : "N/A"}
-                      </td>
-                      <td className="border-b border-gray-300 px-4 py-3 text-center dark:border-gray-600">
-                        {student.isCourseOpened ? "Yes" : "No"}
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td
-                      colSpan={8}
-                      className="px-4 py-6 text-center text-gray-600 dark:text-gray-400"
-                    >
-                      No students found.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </section>
-
-          {/* Pagination Controls */}
-          {totalPages > 1 && (
-            <div className="mt-6 flex justify-center gap-2">
-              {[...Array(totalPages)].map((_, idx) => {
-                const pageNum = idx + 1;
-                return (
-                  <button
-                    key={pageNum}
-                    onClick={() => setCurrentPage(pageNum)}
-                    className={`rounded border px-4 py-2 text-sm ${
-                      pageNum === currentPage
-                        ? "bg-blue-600 text-white"
-                        : "bg-white text-gray-700 dark:bg-gray-700 dark:text-white"
-                    } transition hover:bg-blue-500 hover:text-white`}
+            {/* Controls Section */}
+            <section className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-8 border border-gray-200 dark:border-gray-700">
+              <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
+                <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
+                  <select
+                    value={filteredOpen === null ? "" : String(filteredOpen)}
+                    onChange={(e) =>
+                      setFilteredOpen(
+                        e.target.value === "" ? null : e.target.value === "true",
+                      )
+                    }
+                    className="px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                   >
-                    {pageNum}
-                  </button>
-                );
-              })}
-            </div>
-          )}
+                    <option value="">All Students</option>
+                    <option value="true">Course Opened</option>
+                    <option value="false">Course Not Opened</option>
+                  </select>
 
-          {/* Modal */}
+                  <div className="relative flex-1 min-w-[250px]">
+                    <input
+                      type="text"
+                      placeholder="Search students..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full px-4 py-3 pl-10 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                    />
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg className="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  onClick={exportToExcel}
+                  className="flex items-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+                >
+                  <FaDownload className="text-sm" />
+                  Export Excel
+                </button>
+              </div>
+            </section>
+
+            {/* Students Table */}
+            <section className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50 dark:bg-gray-700">
+                    <tr>
+                      {[
+                        "S.No",
+                        "Student Name",
+                        "Contact",
+                        "Email",
+                        "College",
+                        "Courses",
+                        "Joined",
+                        "Status",
+                      ].map((header) => (
+                        <th
+                          key={header}
+                          className="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider"
+                        >
+                          {header}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200 dark:divide-gray-600">
+                    {paginatedUsers && paginatedUsers.length > 0 ? (
+                      paginatedUsers.map((student, i) => (
+                        <tr
+                          key={`${student.email ?? i}-${i}`}
+                          className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors duration-150"
+                        >
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                            {(currentPage - 1) * itemsPerPage + i + 1}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm font-medium text-gray-900 dark:text-white">
+                              {student.name ?? "N/A"}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
+                            {student.phone ?? "N/A"}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
+                            {student.email ?? "N/A"}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
+                            {student.college ?? "N/A"}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-center">
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                              {student.purchased_courses?.length ?? 0}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
+                            {student.createdAt
+                              ? new Date(student.createdAt).toLocaleDateString()
+                              : "N/A"}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-center">
+                            <span
+                              className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+                                student.isCourseOpened
+                                  ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                                  : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+                              }`}
+                            >
+                              {student.isCourseOpened ? "Active" : "Inactive"}
+                            </span>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={8} className="px-6 py-12 text-center">
+                          <div className="flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
+                            <FaUsers className="text-4xl mb-3 opacity-50" />
+                            <p className="text-lg font-medium">No students found</p>
+                            <p className="text-sm mt-1">
+                              {searchTerm || filteredOpen !== null
+                                ? "Try adjusting your search or filters"
+                                : "No students registered yet"}
+                            </p>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-gray-700 dark:text-gray-300">
+                      Showing{" "}
+                      <span className="font-medium">
+                        {(currentPage - 1) * itemsPerPage + 1}
+                      </span>{" "}
+                      to{" "}
+                      <span className="font-medium">
+                        {Math.min(currentPage * itemsPerPage, searchedUsers?.length || 0)}
+                      </span>{" "}
+                      of <span className="font-medium">{searchedUsers?.length || 0}</span>{" "}
+                      results
+                    </p>
+                    <div className="flex gap-1">
+                      {[...Array(totalPages)].map((_, idx) => {
+                        const pageNum = idx + 1;
+                        return (
+                          <button
+                            key={pageNum}
+                            onClick={() => setCurrentPage(pageNum)}
+                            className={`px-3 py-1 rounded-md text-sm font-medium transition-all duration-200 ${
+                              pageNum === currentPage
+                                ? "bg-blue-600 text-white shadow-lg"
+                                : "text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                            }`}
+                          >
+                            {pageNum}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </section>
+          </div>
+
+          {/* Courses Modal */}
           {courseOpened && (
             <div
               role="dialog"
               aria-modal="true"
               tabIndex={-1}
-              className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 p-4"
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 p-4 backdrop-blur-sm"
               onClick={() => setCourseOpened(false)}
             >
               <div
-                className="max-h-[70vh] w-full max-w-3xl overflow-y-auto rounded-lg bg-white shadow-lg dark:bg-gray-800"
+                className="max-h-[80vh] w-full max-w-4xl overflow-y-auto rounded-2xl bg-white dark:bg-gray-800 shadow-2xl border border-gray-200 dark:border-gray-700"
                 onClick={(e) => e.stopPropagation()}
               >
-                <header className="flex items-center justify-between border-b border-gray-200 p-4 dark:border-gray-700">
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-                    Courses Allotted
-                  </h2>
+                <header className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-t-2xl">
+                  <h2 className="text-2xl font-bold">Courses Allotted</h2>
                   <button
                     aria-label="Close modal"
                     onClick={() => setCourseOpened(false)}
-                    className="text-2xl font-bold text-gray-600 transition hover:text-gray-900 dark:hover:text-gray-200"
+                    className="text-2xl font-bold text-white hover:text-gray-200 transition-colors duration-200"
                   >
                     &times;
                   </button>
                 </header>
 
-                <div className="space-y-4 p-4">
-                  {university.coursesAllotted &&
-                  university.coursesAllotted.length > 0 ? (
+                <div className="p-6 space-y-4">
+                  {university.coursesAllotted && university.coursesAllotted.length > 0 ? (
                     university.coursesAllotted.map((course, idx) => (
                       <div
                         key={idx}
-                        className="rounded-md border border-gray-300 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900"
+                        className="p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 hover:shadow-md transition-all duration-200"
                       >
-                        <p>
-                          <span className="font-semibold">Course Name:</span>{" "}
-                          {course.title}
-                        </p>
-                        <p>
-                          <span className="font-semibold">Price:</span>{" "}
-                          {course.base_price}
-                        </p>
-                        <p>
-                          <span className="font-semibold">Category:</span>{" "}
-                          {course.category}
-                        </p>
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                              {course.title}
+                            </h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-600 dark:text-gray-400">
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium">Price:</span>
+                                <span className="text-green-600 dark:text-green-400 font-semibold">
+                                  ₹{course.base_price}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium">Category:</span>
+                                <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 px-2 py-1 rounded-full text-xs">
+                                  {course.category}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     ))
                   ) : (
-                    <p className="text-center text-gray-600 dark:text-gray-400">
-                      No courses allotted.
-                    </p>
+                    <div className="text-center py-8">
+                      <GiBookshelf className="text-4xl text-gray-400 dark:text-gray-600 mx-auto mb-3" />
+                      <p className="text-gray-500 dark:text-gray-400 text-lg">
+                        No courses allotted yet
+                      </p>
+                    </div>
                   )}
                 </div>
               </div>
