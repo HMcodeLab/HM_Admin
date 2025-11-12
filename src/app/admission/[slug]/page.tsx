@@ -64,7 +64,7 @@ type StudentDetail = {
 };
 
 // Constants
-const PROFILE_PLACEHOLDER = "/assets/person.png";
+const PROFILE_PLACEHOLDER = "/images/default-avatar.avif";
 const ITEMS_PER_PAGE_OPTIONS = [10, 20, 30] as const;
 
 export default function StudentDetailsPage({
@@ -216,7 +216,7 @@ export default function StudentDetailsPage({
           <div className="flex flex-col items-center space-y-3">
             <div className="relative h-32 w-32">
               <Image
-                src={studentDetail.profile || PROFILE_PLACEHOLDER}
+                src={studentDetail?.profile || PROFILE_PLACEHOLDER}
                 alt="Profile"
                 fill
                 className="rounded-full border object-cover"

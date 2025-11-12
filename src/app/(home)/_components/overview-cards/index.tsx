@@ -124,11 +124,11 @@ export function OverviewCardsGroup() {
         }}
         Icon={icons.Users}
       />
-      <OverviewCard
+      {/* <OverviewCard
         label="Total University"
         data={{ value: compactFormat(universityCount), growthRate: 0 }}
         Icon={icons.Product}
-      />
+      /> */}
       <OverviewCard
         label="Total Earning"
         data={{

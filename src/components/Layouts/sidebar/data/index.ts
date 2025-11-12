@@ -245,6 +245,14 @@ export const NAV_DATA: NavSection[] = [
           },
         ],
       },
+
+        {
+        title: "User Management",
+        icon: Icons.FourCircle,
+        url: "/usermanagement",
+        roles: ["superAdmin"],
+      },
+      
     ],
   },
 ];
