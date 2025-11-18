@@ -19,6 +19,7 @@ const initialFormData = {
   coins: "",
   college: "",
   phoneNo: "",
+  CollegeName: "",
   coursesAllotted: [] as string[],
 };
 
@@ -157,9 +158,21 @@ const RegisterUniversity: React.FC = () => {
           <label>University Name</label>
           <input
             type="text"
-            name="college"
+            name="university"
             placeholder="Enter university name"
             value={formData.college}
+            onChange={handleChange}
+            className="rounded border p-2 dark:border-gray-700 dark:bg-gray-800"
+          />
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <label>College Name</label>
+          <input
+            type="text"
+            name="college"
+            placeholder="Enter university name"
+            value={formData.CollegeName}
             onChange={handleChange}
             className="rounded border p-2 dark:border-gray-700 dark:bg-gray-800"
           />
@@ -221,7 +234,7 @@ const RegisterUniversity: React.FC = () => {
             type="file"
             accept="image/*"
             onChange={handleFileChange}
-            className="text-sm  border p-4 rounded dark:border-gray-700"
+            className="rounded border p-4 text-sm dark:border-gray-700"
           />
           {formData.profile && (
             <Image
@@ -269,7 +282,7 @@ const RegisterUniversity: React.FC = () => {
 
         <button
           type="submit"
-          className="col-span-full mt-4 w-1/4 mx-auto flex justify-center rounded bg-black py-2 text-white hover:opacity-90 dark:bg-white dark:text-black"
+          className="col-span-full mx-auto mt-4 flex w-1/4 justify-center rounded bg-black py-2 text-white hover:opacity-90 dark:bg-white dark:text-black"
         >
           Submit
         </button>
