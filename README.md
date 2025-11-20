@@ -4,7 +4,7 @@ A modern, responsive admin dashboard for managing HM Official's platform.
 
 ## Features
 
-- User authentication and authorization
+- User 
 - Dashboard analytics and charts
 - User, product, and order management
 - Responsive design (desktop & mobile)
