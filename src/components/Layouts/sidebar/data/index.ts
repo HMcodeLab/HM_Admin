@@ -233,25 +233,25 @@ export const NAV_DATA: NavSection[] = [
       },
 
       // Role Management
-      {
-        title: "Role Management",
-        icon: Icons.Calendar,
-        roles: ["superAdmin", "hr"],
-        items: [
-          {
-            title: "Role Management",
-            url: "/role-management",
-            roles: ["superAdmin", "hr"],
-          },
-        ],
-      },
+      // {
+      //   title: "Role Management",
+      //   icon: Icons.Calendar,
+      //   roles: ["superAdmin", "hr"],
+      //   items: [
+      //     {
+      //       title: "Role Management",
+      //       url: "/role-management",
+      //       roles: ["superAdmin", "hr"],
+      //     },
+      //   ],
+      // },
 
-        {
-        title: "User Management",
-        icon: Icons.FourCircle,
-        url: "/usermanagement",
-        roles: ["superAdmin"],
-      },
+      //   {
+      //   title: "User Management",
+      //   icon: Icons.FourCircle,
+      //   url: "/usermanagement",
+      //   roles: ["superAdmin"],
+      // },
       
     ],
   },
