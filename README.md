@@ -37,7 +37,7 @@ A modern, responsive admin dashboard for managing HM Official's platform.
     npm start
     ```
 
-## Folder Structure
+## Folder Structur
 
 ```
 admin_dashboard/
