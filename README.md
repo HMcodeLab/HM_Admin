@@ -2,7 +2,7 @@
 
 A modern, responsive admin dashboard for managing HM Official's platform.
 
-## Features
+
 
 - User 
 - Dashboard analytics and charts
