@@ -16,7 +16,6 @@ interface AssessmentForm {
   isProtected: boolean | string;
 }
 
-
 interface AssessmentModalProps {
   courseId: string;
   handleToggleOpen: () => void;
@@ -138,12 +137,12 @@ const AssessmentModal: React.FC<AssessmentModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 top-[16vh] py-10 flex items-center justify-center overflow-x-auto overflow-y-auto">
+    <div className="fixed inset-0 top-[16vh] p-12 z-50 flex items-center justify-center overflow-x-auto overflow-y-auto py-10">
       <Toaster />
       <div className="fixed inset-0 bg-black opacity-50" />
       <form
         onSubmit={handleSubmit}
-        className={`relative mt-10 max-h-screen w-full max-w-xl overflow-y-auto rounded-lg border border-gray-300 bg-white p-4 text-black shadow-lg dark:border-gray-700 dark:bg-gray-900 dark:text-white`}
+        className={`relative pt-12 mt-28 max-h-screen w-full max-w-4xl overflow-y-auto rounded-lg border border-gray-300 bg-white p-4 text-black shadow-lg dark:border-gray-700 dark:bg-gray-900 dark:text-white`}
       >
         <button
           type="button"
@@ -211,6 +210,8 @@ const AssessmentModal: React.FC<AssessmentModalProps> = ({
               required
               className="mt-1"
             />
+
+            {/* Protection Radio Buttons */}
             <div className="mt-2 flex gap-4">
               <label className="flex items-center space-x-2">
                 <input
@@ -231,12 +232,101 @@ const AssessmentModal: React.FC<AssessmentModalProps> = ({
                 <span>Unprotected</span>
               </label>
             </div>
+
+            {/* Protection Options - Only show when Protected is selected */}
+            {form.isProtected === true && (
+              <div className="ml-4 mt-3 rounded-md border border-gray-300 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
+                <h4 className="mb-3 font-medium text-gray-800 dark:text-gray-200">
+                  Protection Settings:
+                </h4>
+                <div className="grid grid-cols-1 gap-3">
+                  <label className="flex cursor-pointer items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 rounded text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-gray-700 dark:text-gray-300">
+                      Microphone Monitoring
+                    </span>
+                  </label>
+
+                  <label className="flex cursor-pointer items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 rounded text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-gray-700 dark:text-gray-300">
+                      Webcam Recording
+                    </span>
+                  </label>
+
+                  <label className="flex cursor-pointer items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 rounded text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-gray-700 dark:text-gray-300">
+                      Tab Switch Detection
+                    </span>
+                  </label>
+
+                  <label className="flex cursor-pointer items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 rounded text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-gray-700 dark:text-gray-300">
+                      Multiple Person Detection
+                    </span>
+                  </label>
+
+                  <label className="flex cursor-pointer items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 rounded text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-gray-700 dark:text-gray-300">
+                      Phone Detection
+                    </span>
+                  </label>
+
+                  <label className="flex cursor-pointer items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 rounded text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-gray-700 dark:text-gray-300">
+                      Control Key Press Detection
+                    </span>
+                  </label>
+
+                  <label className="flex cursor-pointer items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 rounded text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-gray-700 dark:text-gray-300">
+                      Invisible Camera Protection
+                    </span>
+                  </label>
+                </div>
+              </div>
+            )}
+
+            {/* Show message when Unprotected is selected */}
+            {form.isProtected === false && (
+              <div className="ml-4 mt-3 rounded-md border border-yellow-200 bg-yellow-50 p-3 dark:border-yellow-800 dark:bg-yellow-900">
+                <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                  No protection features enabled for unprotected assessment.
+                </p>
+              </div>
+            )}
           </div>
         ))}
         <div className="mt-4 flex justify-between">
           <button
             type="submit"
-            className="rounded-md bg-green-600 px-4 py-2 text-white hover:bg-green-700"
+            className="rounded-md bg-green-600 px-4 py-2 text-white hover:bg-green-700 disabled:opacity-50"
             disabled={loading}
           >
             {loading ? "Submitting..." : "Submit"}

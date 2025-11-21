@@ -232,7 +232,7 @@ export const NAV_DATA: NavSection[] = [
         ],
       },
 
-      Role Management
+      // Role Management
       {
         title: "Role Management",
         icon: Icons.Calendar,
@@ -246,12 +246,12 @@ export const NAV_DATA: NavSection[] = [
         ],
       },
 
-        {
-        title: "User Management",
-        icon: Icons.FourCircle,
-        url: "/usermanagement",
-        roles: ["superAdmin"],
-      },
+      //   {
+      //   title: "User Management",
+      //   icon: Icons.FourCircle,
+      //   url: "/usermanagement",
+      //   roles: ["superAdmin"],
+      // },
       
     ],
   },
